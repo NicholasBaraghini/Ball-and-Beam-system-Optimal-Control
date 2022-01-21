@@ -12,4 +12,4 @@ You can read and download our report [here]
 
 - [Nicholas Baraghini](https://github.com/NicholasBaraghini) 
 - [Federico Iadarola]
-- [Fabio Curto]
+- [Fabio Curto]()
