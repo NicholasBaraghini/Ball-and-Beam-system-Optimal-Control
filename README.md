@@ -7,3 +7,9 @@ You can read the task description [here](https://github.com/NicholasBaraghini/Ba
 
 ### Report
 You can read and download our report [here]
+
+### Team
+
+- [Nicholas Baraghini](https://github.com/NicholasBaraghini) 
+- [Federico Iadarola]
+- [Fabio Curto]
