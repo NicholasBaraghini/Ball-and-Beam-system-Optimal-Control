@@ -11,5 +11,5 @@ You can read and download our report [here]
 ### Team
 
 - [Nicholas Baraghini](https://github.com/NicholasBaraghini) 
-- [Federico Iadarola]
+- [Federico Iadarola](https://github.com/fedeiada)
 - [Fabio Curto](https://github.com/FabioCurto)
