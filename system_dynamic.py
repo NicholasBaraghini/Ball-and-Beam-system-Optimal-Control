@@ -1,6 +1,9 @@
 # Libraries
 import numpy as np
 import matplotlib
+
+
+
 # USEFULL FUNCTIONs
 
 def dot3(a,B,c):
@@ -10,6 +13,9 @@ def dot3(a,B,c):
   #   c : column vector Nx1
 
   return np.matmul(np.matmul(a,B),c) # Returns the matrix product a*B*c
+
+
+
 #SYSTEM DYNAMICS DYNAMICS (Ball and Beam)
 
 # SYSTEM DYNAMIC FUNCTION 
