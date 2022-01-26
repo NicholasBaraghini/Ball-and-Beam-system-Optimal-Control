@@ -28,8 +28,8 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
         uu_ref_tt = uu_ref[:, tt:tt + 1]
 
-        xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
-        print(xx_tk)
+        xx_tk = xx[:, tt:tt+1, kk:kk + 1]
+
         xx_ref_tt = xx_ref[:, tt:tt + 1]
 
         pp_next = pp[:, tt + 1:tt + 2]
@@ -125,15 +125,15 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
 
         for tt in range(0, TT - 1):
             # uu_tk = uu[:, tt:tt+1, kk:kk+1]
-            uu_ref_tt = uu_ref[:, tt:tt + 1]
-            uu_temp_tt = uu_temp[:, tt:tt + 1]
+            uu_ref_tt = uu_ref[:, tt:tt+1]
+            uu_temp_tt = uu_temp[:, tt:tt+1]
 
-            xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
-            print(xx_tk)
-            xx_ref_tt = xx_ref[:, tt:tt + 1]
-            xx_temp_tt = xx_temp[:, tt:tt + 1]
+            xx_tk = xx[:, tt:tt+1, kk:kk+1]
 
-            pp_next = pp[:, tt + 1:tt + 2]
+            xx_ref_tt = xx_ref[:, tt:tt+1]
+            xx_temp_tt = xx_temp[:, tt:tt+1]
+
+            pp_next = pp[:, tt+1:tt+2]
 
             # temporary input control computation
             uu_temp[:, tt:tt + 1] = uu[:, tt:tt + 1, kk:kk + 1] + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(
@@ -190,7 +190,7 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
         uu_next_tt = uu[:, tt:tt + 1, kk + 1:kk + 2]
 
         xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
-        print(xx_tk)
+
         xx_ref_tt = xx_ref[:, tt:tt + 1]
         xx_next_tt = xx[:, tt:tt + 1, kk + 1:kk + 2]
 

@@ -24,7 +24,7 @@ def dot3(a, B, c):
 
 def BB_Dynamics(xx, uu, pp, params):
     # INPUTS:
-    #   - xx    : system state at current time t
+    #   - XX    : system state at current time t
     #   - uu    : input at current time t
     #   - pp    : tensor product term
     #   - params: list of parameters
@@ -42,6 +42,12 @@ def BB_Dynamics(xx, uu, pp, params):
     nx = 4  # number of states
     nu = 1  # number of inputs
 
+    xx = np.reshape(xx, 4)
+    uu = np.reshape(uu, 1)
+    pp = np.reshape(pp, 4)
+    print('shape uu:', uu.shape)
+    print('shape pp', pp.shape)
+
     # useful notations
     d1 = (mm + ii / (rr ** 2)) ** (-1)
     d2 = (II + mm * (xx[0] ** 2)) ** (-1)
@@ -49,10 +55,10 @@ def BB_Dynamics(xx, uu, pp, params):
 
     # SYSTEM DYNAMICS
 
-    xx_dot = np.array([[xx[1],
-                        (mm * xx[0] * (xx[3] ** 2) - mm * gg * np.sin(xx[2])) / (mm + II / (rr ** 2)),
-                        xx[3],
-                        -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]])
+    xx_dot = [xx[1],
+              (mm * xx[0] * (xx[3] ** 2) - mm * gg * np.sin(xx[2])) / (mm + II / (rr ** 2)),
+              xx[3],
+              -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]
 
     xx_next_0 = xx[0] + xx_dot[0] * dt
     xx_next_1 = xx[1] + xx_dot[1] * dt
@@ -67,7 +73,7 @@ def BB_Dynamics(xx, uu, pp, params):
     # GRADIENTS
 
     fx1_4_num = (-(2 * mm * xx[1] * xx[3] + mm * gg * np.cos(xx[2])) * d22 + (
-                2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * xx[0] * np.cos(xx[2]) - uu) * (2 * mm * xx[0]))
+            2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * xx[0] * np.cos(xx[2]) - uu) * (2 * mm * xx[0]))
     fx1_4_den = d22 ** 2
 
     # partial derivative w.r.t. xx[1]:
@@ -110,13 +116,13 @@ def BB_Dynamics(xx, uu, pp, params):
 
     # useful notations
     fx1x1_4_num = (2 * mm * (2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * np.cos(xx[3]) - uu) * fx1_4_den) - (
-                fx1_4_num * (4 * d22 * mm * xx[0]))
+            fx1_4_num * (4 * d22 * mm * xx[0]))
     fx1x1_4_den = d22 ** (4)
 
     # 1st row of the second derivative matrix nx*nx
     pfxx[0, 0] = pp[3] * ((-2 * mm * xx[3] * d22 + 4 * xx[3] * (mm * xx[0]) ** 2) / fx1_4_den) * dt
     pfxx[0, 1] = pp[3] * (
-                (mm * gg * np.sin(xx[2]) * d22 - 2 * gg * np.sin(xx[2]) * (mm * xx[0]) ** 2) / fx1_4_den) * dt
+            (mm * gg * np.sin(xx[2]) * d22 - 2 * gg * np.sin(xx[2]) * (mm * xx[0]) ** 2) / fx1_4_den) * dt
     pfxx[0, 2] = pp[3] * ((-2 * mm * xx[1] * d22 + 4 * xx[1] * (mm * xx[0]) ** 2) / fx1_4_den) * dt
     pfxx[0, 3] = (pp[1] * d1 * (2 * mm * xx[3]) * dt + pp[3] * (fx1x1_4_num / fx1x1_4_den) * dt)
 
@@ -141,7 +147,7 @@ def BB_Dynamics(xx, uu, pp, params):
     # pfuu has all null elements
 
     # pfux has only one non-null element
-    pfux[3, 1] = pp[3] * (2 * mm * xx[0] * (d2 ** 2)) * dt
+    pfux[0,3] = pp[3] * (2 * mm * xx[0] * (d2 ** 2)) * dt
 
     # OUTPUTS: (the function returns an output dictionary with the follows entries)
     #   - xx_next : system state at state (t+1)

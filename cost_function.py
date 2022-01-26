@@ -15,6 +15,7 @@ def Stage_Cost(xx, uu, xx_ref, uu_ref, params):
     #   - uu_ref: reference input at time t
     #   - params: list of parameters
 
+
     QQ = params['QQ']
     RR = params['QQ_T']
 
