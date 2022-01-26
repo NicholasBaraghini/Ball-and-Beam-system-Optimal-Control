@@ -54,7 +54,7 @@ def BB_Dynamics(xx, uu, p_tens, params):
     xx_dot = np.array([[xx[1],
                         (mm * xx[0] * (xx[3] ** 2) - mm * gg * np.sin(xx[2])) / (mm + II / (rr ** 2)),
                         xx[3],
-                        -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]]).T;
+                        -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]]);
 
     xx_next_0 = xx[0] + xx_dot[0] * dt;
     xx_next_1 = xx[1] + xx_dot[1] * dt;
