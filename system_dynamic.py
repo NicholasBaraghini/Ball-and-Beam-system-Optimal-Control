@@ -10,8 +10,12 @@ def dot3(a, B, c):
     #   a : row vector 1xN
     #   B : matrix NxN
     #   c : column vector Nx1
+    #print(a)
+    #print(B)
+    #print(c)
+    d = np.matmul(np.matmul(a, B), c)
 
-    return np.matmul(np.matmul(a, B), c)  # Returns the matrix product a*B*c
+    return  d # Returns the matrix product a*B*c
 
 
 # SYSTEM DYNAMICS DYNAMICS (Ball and Beam)
@@ -38,29 +42,35 @@ def BB_Dynamics(xx, uu, p_tens, params):
     nx = 4;  # nmumber of states
     nu = 1;  # number of inputs
 
-    # SYSTEM DYNAMICS
-    xx_next = np.zeros((nx, 1));  # initialization
-
-    xx_dot = np.array([[xx[1],
-                        (mm * xx[0] * (xx[3] ** 2) - mm * gg * np.sin(xx[2])) / (mm + II / (rr ** 2)),
-                        xx[3],
-                        -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]]);
-
-    xx_next[0] = xx[0] + xx_dot[0] * dt;
-    xx_next[1] = xx[1] + xx_dot[1] * dt;
-    xx_next[2] = xx[2] + xx_dot[2] * dt;
-    xx_next[3] = xx[3] + xx_dot[3] * dt;
-
-    # GRADIENTs
-
     # useful notations
     d1 = (mm + ii / (rr ** 2)) ** (-1);
     d2 = (II + mm * (xx[0] ** 2)) ** (-1);
     d22 = (II + mm * (xx[0] ** 2));
 
-    fx1_4_num = (-(2 * mm * xx[1] * xx[3] + mm * gg * np.cos(xx[2])) * d22
-                 + (2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * xx[0] * np.cos(xx[2]) - uu) * (2 * mm * xx[0]));
-    fx1_4_den = d22 ** (2);
+
+    # SYSTEM DYNAMICS
+
+
+    xx_dot = np.array([[xx[1],
+                        (mm * xx[0] * (xx[3] ** 2) - mm * gg * np.sin(xx[2])) / (mm + II / (rr ** 2)),
+                        xx[3],
+                        -(2 * mm * xx[0] * xx[1] * xx[3] + mm * xx[0] * np.cos(xx[2]) - uu) / d22]]).T;
+
+    xx_next_0 = xx[0] + xx_dot[0] * dt;
+    xx_next_1 = xx[1] + xx_dot[1] * dt;
+    xx_next_2 = xx[2] + xx_dot[2] * dt;
+    xx_next_3 = xx[3] + xx_dot[3] * dt;
+
+    xx_next = np.array([[xx_next_0,
+                         xx_next_1,
+                         xx_next_2,
+                         xx_next_3]]).T;  # initialization
+
+
+    # GRADIENTs
+
+    fx1_4_num = (-(2 * mm * xx[1] * xx[3] + mm * gg * np.cos(xx[2])) * d22 + (2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * xx[0] * np.cos(xx[2]) - uu) * (2 * mm * xx[0]));
+    fx1_4_den = d22**(2);
 
     # partial derivative w.r.t. xx[1]:
     fx1 = np.array([[1,
@@ -93,7 +103,7 @@ def BB_Dynamics(xx, uu, p_tens, params):
     fu = np.array([[0,
                     0,
                     0,
-                    dt * d2]]);
+                    dt * d2]]).T;
 
     # SECOND ORDER GRADIENTs
     pfxx = np.zeros((nx, nx));
@@ -101,17 +111,14 @@ def BB_Dynamics(xx, uu, p_tens, params):
     pfuu = np.zeros((nu, nu));
 
     # useful notations
-    fx1x1_4_num = (2 * mm * (2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * np.cos(xx[3]) - uu) * fx1_4_den) - (
-                fx1_4_num * (4 * d22 * mm * xx[0]));
+    fx1x1_4_num = (2 * mm * (2 * mm * xx[0] * xx[1] * xx[3] + mm * gg * np.cos(xx[3]) - uu) * fx1_4_den) - (fx1_4_num * (4 * d22 * mm * xx[0]));
     fx1x1_4_den = d22 ** (4);
 
     # 1st row of the second derivative matrix nx*nx
     pfxx[0, 0] = pp[3] * ((-2 * mm * xx[3] * d22 + 4 * xx[3] * (mm * xx[0]) ** 2) / fx1_4_den) * dt;
-    pfxx[0, 1] = pp[3] * (
-                (mm * gg * np.sin(xx[2]) * d22 - 2 * gg * np.sin(xx[2]) * (mm * xx[0]) ** 2) / fx1_4_den) * dt;
+    pfxx[0, 1] = pp[3] * ((mm * gg * np.sin(xx[2]) * d22 - 2 * gg * np.sin(xx[2]) * (mm * xx[0]) ** 2) / fx1_4_den) * dt;
     pfxx[0, 2] = pp[3] * ((-2 * mm * xx[1] * d22 + 4 * xx[1] * (mm * xx[0]) ** 2) / fx1_4_den) * dt;
-    pfxx[0, 3] = (pp[1] * d1 * (2 * mm * xx[3]) * dt +
-                  pp[3] * (fx1x1_4_num / fx1x1_4_den) * dt);
+    pfxx[0, 3] = (pp[1] * d1 * (2 * mm * xx[3]) * dt + pp[3] * (fx1x1_4_num / fx1x1_4_den) * dt);
 
     # 2nd row of the second derivative matrix nx*nx
     pfxx[1, 0] = pp[3] * (-2 * mm * xx[3] * d2) * dt;
@@ -122,13 +129,11 @@ def BB_Dynamics(xx, uu, p_tens, params):
     # 3rd row of the second derivative matrix nx*nx
     pfxx[2, 0] = pp[3] * (mm * gg * np.cos(xx[2]) * d2) * dt;
     pfxx[2, 1] = 0;
-    pfxx[2, 2] = (pp[1] * (mm * gg * np.sin(xx[2]) * d1) * dt +
-                  pp[3] * (-mm * gg * xx[0] * np.sin(xx[2]) * d2) * dt);
+    pfxx[2, 2] = (pp[1] * (mm * gg * np.sin(xx[2]) * d1) * dt + pp[3] * (-mm * gg * xx[0] * np.sin(xx[2]) * d2) * dt);
     pfxx[2, 3] = 0;
 
     # 4th row of the second derivative matrix nx*nx
-    pfxx[3, 0] = (pp[1] * (2 * mm * xx[3] * d1) * dt +
-                  pp[3] * (-2 * mm * xx[1] * d2) * dt);
+    pfxx[3, 0] = (pp[1] * (2 * mm * xx[3] * d1) * dt + pp[3] * (-2 * mm * xx[1] * d2) * dt);
     pfxx[3, 1] = pp[3] * (-2 * mm * xx[0] * d2) * dt;
     pfxx[3, 2] = 0;
     pfxx[3, 3] = pp[1] * (2 * mm * xx[0] * d1) * dt;
