@@ -7,9 +7,7 @@ import system_dynamic as sd
 
 # DDP Algorithm Components evaluated at k-th iteration
 def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
-    # INPUTs:
-    #   - kk      : iteration of evaluation
-    #   - xx      : system state tensor
+    # INPUTS      : system state tensor
     #   - uu      : input tensor
     #   - xx_ref  : system state reference matrix
     #   - uu_ref  : input reference matrx
@@ -17,29 +15,27 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     #   - TT      : final step T
     #   - params  : parameters dictionary
 
-    nx = np.shape(xx_ref)[0]  # state vector dymension
-    nu = np.shape(uu_ref)[0]  # input vector dymension
+    nx = np.shape(xx_ref)[0]  # state vector dimension
+    nu = np.shape(uu_ref)[0]  # input vector dimension
 
     # Initializations
     KK = np.zeros((nu, nx, TT))
-    SS = np.zeros((nu, TT)) # sigma
+    SS = np.zeros((nu, TT))  # sigma
     pp = np.zeros((nx, TT))
     PP = np.zeros((nx, nx, TT))
 
     for tt in range(TT - 2, 0, -1):
-        # Extracting a row or a column from a matrix or a tensor will return a list.
-        # To proper compute any matrix product we need to convert back the list as a numpy array then.
-        uu_tk = uu[:, tt:tt+1, kk:kk+1]
-        uu_ref_tt = uu_ref[:, tt:tt+1]
+        uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
+        uu_ref_tt = uu_ref[:, tt:tt + 1]
 
-        xx_tk = xx[:, tt:tt+1, kk:kk+1]
+        xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
         print(xx_tk)
-        xx_ref_tt = xx_ref[:, tt:tt+1]
+        xx_ref_tt = xx_ref[:, tt:tt + 1]
 
-        pp_next = pp[:, tt+1:tt+2]
-        SS_tt = SS[:, tt:tt+1]
+        pp_next = pp[:, tt + 1:tt + 2]
+        SS_tt = SS[:, tt:tt + 1]
 
-        # System dymanics ar time t k-th iteration
+        # System dynamics ar time t k-th iteration
         dyn = sd.BB_Dynamics(xx_tk, uu_tk, pp_next, params)
         # stage cost at time t k-th iteration
         stC = cost_function.Stage_Cost(xx_tk, uu_tk, xx_ref_tt, uu_ref_tt, params)
@@ -47,9 +43,9 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         trC = cost_function.Terminal_Cost(xx_tk, xx_ref_tt, params)
 
         # Gain Computation
-        KS_dir_term = stC['luu'] + sd.dot3(dyn['fu'].T, PP[:, :, tt+1:tt+2], dyn['fu']) + dyn['pfuu']
+        KS_dir_term = stC['luu'] + sd.dot3(dyn['fu'].T, PP[:, :, tt + 1:tt + 2], dyn['fu']) + dyn['pfuu']
         KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
-        KK_dir_term = stC['lux'] + sd.dot3(dyn['fu'].T, PP[:, :, tt+1:tt+2], dyn['fx']) + dyn['pfux'];  # second factor of the DDP gain formula
+        KK_dir_term = stC['lux'] + sd.dot3(dyn['fu'].T, PP[:, :, tt + 1:tt + 2], dyn['fx']) + dyn['pfux']  # second factor of the DDP gain formula
 
         KK = -np.matmul(KS_inv_term, KS_dir_term)
 
@@ -59,19 +55,19 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         SS = -np.matmul(KS_inv_term, SS_dir_term)
 
         # PP update
-        PP_1_term = stC['lxx'] + sd.dot3(dyn['fx'].T, PP[:, :, tt+1:tt+2], dyn['fx']) + dyn['pfxx']  # PP first term (DDP formula)
-        PP_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt+1]).T, KS_dir_term, KK[:, :, tt:tt+1])  # PP second term (DDP formula)
+        PP_1_term = stC['lxx'] + sd.dot3(dyn['fx'].T, PP[:, :, tt + 1:tt + 2], dyn['fx']) + dyn['pfxx']  # PP first term (DDP formula)
+        PP_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt + 1]).T, KS_dir_term,
+                            KK[:, :, tt:tt + 1])  # PP second term (DDP formula)
 
-        PP[:, :, tt] = PP_1_term - PP_2_term
-        PP[:, :, TT] = trC['DLxx']
+        PP[:, :, tt:tt + 1] = PP_1_term - PP_2_term
+        PP[:, :, TT:TT + 1] = trC['DLxx']
 
         # pp update
-        pp_1_term = stC['lx'] + np.matmul(dyn['fx'].T, pp[:, tt+1:tt+2].T)         # PP first term (DDP formula)
-        pp_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt+1]).T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
+        pp_1_term = stC['lx'] + np.matmul(dyn['fx'].T, pp[:, tt + 1:tt + 2].T)  # PP first term (DDP formula)
+        pp_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt + 1]).T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
 
-        pp[:, tt] = pp_1_term - pp_2_term
-
-        pp[:, TT] = trC['DLx']
+        pp[:, tt:tt + 1] = pp_1_term - pp_2_term
+        pp[:, TT:TT + 1] = trC['DLx']
 
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
@@ -93,14 +89,15 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
 
     return out
 
+
 # %%
 # ARMIJO's Function
 
 def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, pp, params):
-    # INPUTs:
+    # INPUTS:
     #   - kk       : actual iteration
-    #   - xx_init  : system initial state at at time t=0
-    #   - xx_ref   : referance state vector
+    #   - xx_init  : system initial state at time t=0
+    #   - xx_ref   : reference state vector
     #   - uu_ref   : reference input vector
     #   - TT       : final step T
     #   - cost     : cost vector
@@ -126,24 +123,23 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
         xx_temp[:, 0] = xx_init
         cost_temp = 0
 
-        for tt in range(0, TT-1):
+        for tt in range(0, TT - 1):
+            # uu_tk = uu[:, tt:tt+1, kk:kk+1]
+            uu_ref_tt = uu_ref[:, tt:tt + 1]
+            uu_temp_tt = uu_temp[:, tt:tt + 1]
 
-
-            uu_tk = uu[:, tt:tt+1, kk:kk+1]
-            uu_ref_tt = uu_ref[:, tt:tt+1]
-            uu_temp_tt = uu_temp[:, tt:tt+1]
-
-            xx_tk = xx[:, tt:tt+1, kk:kk+1]
+            xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
             print(xx_tk)
-            xx_ref_tt = xx_ref[:, tt:tt+1]
-            xx_temp_tt = xx_temp[:, tt:tt+1]
+            xx_ref_tt = xx_ref[:, tt:tt + 1]
+            xx_temp_tt = xx_temp[:, tt:tt + 1]
 
-            pp_next = pp[:, tt + 1:tt+2]
+            pp_next = pp[:, tt + 1:tt + 2]
 
             # temporary input control computation
-            uu_temp[:, tt:tt+1] = uu[:, tt:tt+1, kk:kk+1] + gammas[-1] * Sigma[:, tt:tt+1] + np.matmul(KK[:, :, tt:tt+1], (xx_temp_tt - xx_tk))
+            uu_temp[:, tt:tt + 1] = uu[:, tt:tt + 1, kk:kk + 1] + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(
+                KK[:, :, tt:tt + 1], (xx_temp_tt - xx_tk))
             # temporary system dynamics computation
-            xx_temp[:, tt+1:tt+2] = sd.BB_Dynamics(xx_temp_tt, uu_temp_tt, pp_next, params)['xx_next']
+            xx_temp[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_temp_tt, uu_temp_tt, pp_next, params)['xx_next']
             # stage cost computation
             cost_dummy = cost_function.Stage_Cost(xx_temp_tt, uu_temp_tt, xx_ref_tt, uu_ref_tt, params)['cost_t']
 
@@ -156,11 +152,11 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
         # Cost structure collecting the cost registered for each gamma (step size)
         armijo_cost = np.concatenate(armijo_cost, cost_temp, axis=1)
 
-        descent = DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, params)['descent'];  # descent at time t, k-th iteration
-        if (armijo_cost[-1] <= (cost[kk]) + cc * gammas[-1] * descent):
+        descent = DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, params)['descent'] # descent at time t, k-th iteration
+        if armijo_cost[-1] <= (cost[kk]) + cc * gammas[-1] * descent:
             return gammas
 
-        # Stucture collecting all the gamma computed not satisfying the Armijo's condition
+        # Structure collecting all the gamma computed not satisfying the Armijo's condition
         gammas = np.concatenate(gammas, beta * gammas[-1], axis=1)
 
     # OUTPUT:
@@ -170,14 +166,14 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
 
 
 # Function implemented to update the Trajectory state and input
-def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigma, KK, pp,  params):
-    # INPUTs:
+def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigma, KK, pp, params):
+    # INPUTS:
     #   - kk       : actual iteration
     #   - xx       : system state tensor
     #   - uu       : input tensor
-    #   - xx_ref   : referance state vector
+    #   - xx_ref   : reference state vector
     #   - uu_ref   : reference input vector
-    #   - xx_init  : system initial state at at time t=0
+    #   - xx_init  : system initial state at time t=0
     #   - TT       : final step T
     #   - cost     : cost vector
     #   - gamma    : Step size
@@ -188,38 +184,35 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
 
     xx[:, 0, kk + 1] = xx_init
 
-    for tt in range(0, TT-1):
+    for tt in range(0, TT - 1):
+        # uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
+        uu_ref_tt = uu_ref[:, tt:tt + 1]
+        uu_next_tt = uu[:, tt:tt + 1, kk + 1:kk + 2]
 
-        # Extracting a row or a column from a matrix or a tensor will return a list.
-        # To proper compute any matrix product we need to convert back the list as a numpy array then.
-        uu_tk = uu[:, tt:tt+1, kk:kk+1]
-        uu_ref_tt = uu_ref[:, tt:tt+1]
-        uu_next_tt = uu[:, tt:tt+1, kk+1:kk+2]
-
-        xx_tk = xx[:, tt:tt+1, kk:kk+1]
+        xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
         print(xx_tk)
-        xx_ref_tt = xx_ref[:, tt:tt+1]
-        xx_next_tt = xx[:, tt:tt+1, kk+1:kk+2]
+        xx_ref_tt = xx_ref[:, tt:tt + 1]
+        xx_next_tt = xx[:, tt:tt + 1, kk + 1:kk + 2]
 
-        pp_next = pp[:, tt+1:tt+2]
-
+        pp_next = pp[:, tt + 1:tt + 2]
 
         # Input vector update at time t
-        uu[:, tt:tt+1, kk+1:kk+2] = uu[:, tt:tt+1, kk:kk+1] + gamma * Sigma[:, tt:tt+1] + np.matmul(KK[:, :, tt:tt+1],(xx_next_tt - xx_tk))
+        uu[:, tt:tt + 1, kk + 1:kk + 2] = uu[:, tt:tt + 1, kk:kk + 1] + gamma * Sigma[:, tt:tt + 1] + np.matmul(
+            KK[:, :, tt:tt + 1], (xx_next_tt - xx_tk))
 
         # State vector update at time t
-        xx[:, tt+1:tt+2, kk+1:kk+2] = sd.BB_Dynamics(xx_next_tt, uu_next_tt, pp_next, params)
+        xx[:, tt + 1:tt + 2, kk + 1:kk + 2] = sd.BB_Dynamics(xx_next_tt, uu_next_tt, pp_next, params)
 
         # Cost Function Increment contribution at time t
-        cost[kk+1] = cost[kk+1] + cost_function.Stage_Cost(xx_next_tt, uu_next_tt, xx_ref_tt, uu_ref_tt, params)['cost_t']
+        cost[kk + 1] = cost[kk + 1] + cost_function.Stage_Cost(xx_next_tt, uu_next_tt, xx_ref_tt, uu_ref_tt, params)[
+            'cost_t']
 
-    cost[kk+1] = cost[kk+1] + cost_function.Terminal_Cost(xx_next_tt, xx_ref_tt, params)['cost_T']
+    cost[kk + 1] = cost[kk + 1] + cost_function.Terminal_Cost(xx_next_tt, xx_ref_tt, params)['cost_T']
 
     out = {
-            'xx': xx,
-            'uu': uu,
-            'cost': cost
+        'xx': xx,
+        'uu': uu,
+        'cost': cost
     }
 
     return out
-
