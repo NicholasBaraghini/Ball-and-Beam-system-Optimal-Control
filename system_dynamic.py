@@ -22,11 +22,11 @@ def dot3(a, B, c):
 
 # SYSTEM DYNAMIC FUNCTION
 
-def BB_Dynamics(xx, uu, p_tens, params):
+def BB_Dynamics(xx, uu, pp, params):
     # INPUTS:
-    #   - xx  : system state at current time t
-    #   - uu  : input at current time t
-    #   - p_tens: tensor product term
+    #   - xx    : system state at current time t
+    #   - uu    : input at current time t
+    #   - pp    : tensor product term
     #   - params: list of parameters
 
     # PARAMETERS EXTRACTION:
