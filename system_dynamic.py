@@ -42,8 +42,6 @@ def BB_Dynamics(xx, uu, pp, params):
     xx = np.reshape(xx, 4)
     uu = np.reshape(uu, 1)
     pp = np.reshape(pp, 4)
-    print('shape uu:', uu.shape)
-    print('shape pp', pp.shape)
 
     # useful notations
     d1 = (mm + ii / (rr ** 2)) ** (-1)
