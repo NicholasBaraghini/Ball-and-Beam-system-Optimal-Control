@@ -25,7 +25,6 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     PP = np.zeros((nx, nx, TT))
 
     for tt in range(TT - 2, 0, -1):
-        print(tt)
         uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
         uu_ref_tt = uu_ref[:, tt:tt + 1]
 
