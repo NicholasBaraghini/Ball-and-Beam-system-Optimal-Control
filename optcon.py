@@ -25,10 +25,11 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     PP = np.zeros((nx, nx, TT))
 
     for tt in range(TT - 2, 0, -1):
+        print(tt)
         uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
         uu_ref_tt = uu_ref[:, tt:tt + 1]
 
-        xx_tk = xx[:, tt:tt+1, kk:kk + 1]
+        xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
 
         xx_ref_tt = xx_ref[:, tt:tt + 1]
 
@@ -43,36 +44,48 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         trC = cost_function.Terminal_Cost(xx_tk, xx_ref_tt, params)
 
         # Gain Computation
-        KS_dir_term = stC['luu'] + sd.dot3(dyn['fu'].T, PP[:, :, tt + 1:tt + 2], dyn['fu']) + dyn['pfuu']
-        KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
-        KK_dir_term = stC['lux'] + sd.dot3(dyn['fu'].T, PP[:, :, tt + 1:tt + 2], dyn['fx']) + dyn['pfux']  # second factor of the DDP gain formula
 
-        KK = -np.matmul(KS_inv_term, KS_dir_term)
+        PP_tt = np.reshape(PP[:, :, tt + 1:tt + 2], (4, 4))
+        fu = np.reshape(dyn['fu'], (4, 1))
+        fx = dyn['fx']
+        KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4))
+        KK_inv_tt = np.reshape(np.linalg.pinv(KK[:, :, tt:tt + 1]), (1, 4))
+
+        KS_dir_term = stC['DLuu'] + sd.dot3(fu.T, PP_tt, fu) + dyn['pfuu']
+        KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
+        KK_dir_term = stC['DLux'] + sd.dot3(fu.T, PP_tt, fx) + dyn['pfux']  # second factor of the DDP gain formula
+
+        KK[:, :, tt:tt + 1] = -np.matmul(KS_inv_term, KS_dir_term)
 
         # Sigma Computation
-        SS_dir_term = stC['lu'] + np.matmul(dyn['fu'], pp_next)  # second factor of the DDP sigma formula
+        SS_dir_term = stC['DLu'] + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
 
-        SS = -np.matmul(KS_inv_term, SS_dir_term)
+        SS[:, tt:tt + 1] = -np.matmul(KS_inv_term, SS_dir_term)
 
         # PP update
-        PP_1_term = stC['lxx'] + sd.dot3(dyn['fx'].T, PP[:, :, tt + 1:tt + 2], dyn['fx']) + dyn['pfxx']  # PP first term (DDP formula)
-        PP_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt + 1]).T, KS_dir_term,
-                            KK[:, :, tt:tt + 1])  # PP second term (DDP formula)
+        PP_1_term = stC['DLxx'] + sd.dot3(fx.T, PP_tt, fx) + dyn['pfxx']  # PP first term (DDP formula)
+        PP_2_term = sd.dot3(KK_inv_tt.T, KS_dir_term, KK_tt)  # PP second term (DDP formula)
 
-        PP[:, :, tt:tt + 1] = PP_1_term - PP_2_term
-        PP[:, :, TT:TT + 1] = trC['DLxx']
+        PP[:, :, tt:tt + 1] = np.reshape(PP_1_term - PP_2_term, (4, 4, 1))
+        PP[:, :, TT:TT + 1] = np.reshape(trC['DLxx'], (4, 4, 1))
 
         # pp update
-        pp_1_term = stC['lx'] + np.matmul(dyn['fx'].T, pp[:, tt + 1:tt + 2].T)  # PP first term (DDP formula)
-        pp_2_term = sd.dot3(np.linalg.inv(KK[:, :, tt:tt + 1]).T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
+        pp_1_term = stC['DLx'] + np.matmul(fx.T, pp_next)  # PP first term (DDP formula)
+        pp_2_term = sd.dot3(KK_inv_tt.T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
 
-        pp[:, tt:tt + 1] = pp_1_term - pp_2_term
+        print('KK_inv_tt shape', KK_inv_tt.shape)
+        print('KS_dir_term shape', KS_dir_term.shape)
+        print('SS_tt shape', SS_tt.shape)
+
+        print('pp shape : ', pp[:, tt:tt + 1].shape)
+        print('pp_1_term shape : ', (pp_2_term).shape)
+        pp[:, tt:tt + 1] = np.reshape(pp_1_term - pp_2_term, (4,1))
         pp[:, TT:TT + 1] = trC['DLx']
 
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
 
-    # OUTPUTs:
+    # OUTPUTS:
     #   - KK      :
     #   - Sigma   :
     #   - PP      :
@@ -125,15 +138,15 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
 
         for tt in range(0, TT - 1):
             # uu_tk = uu[:, tt:tt+1, kk:kk+1]
-            uu_ref_tt = uu_ref[:, tt:tt+1]
-            uu_temp_tt = uu_temp[:, tt:tt+1]
+            uu_ref_tt = uu_ref[:, tt:tt + 1]
+            uu_temp_tt = uu_temp[:, tt:tt + 1]
 
-            xx_tk = xx[:, tt:tt+1, kk:kk+1]
+            xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
 
-            xx_ref_tt = xx_ref[:, tt:tt+1]
-            xx_temp_tt = xx_temp[:, tt:tt+1]
+            xx_ref_tt = xx_ref[:, tt:tt + 1]
+            xx_temp_tt = xx_temp[:, tt:tt + 1]
 
-            pp_next = pp[:, tt+1:tt+2]
+            pp_next = pp[:, tt + 1:tt + 2]
 
             # temporary input control computation
             uu_temp[:, tt:tt + 1] = uu[:, tt:tt + 1, kk:kk + 1] + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(
@@ -152,7 +165,7 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, cc, beta, Sigma, KK, p
         # Cost structure collecting the cost registered for each gamma (step size)
         armijo_cost = np.concatenate(armijo_cost, cost_temp, axis=1)
 
-        descent = DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, params)['descent'] # descent at time t, k-th iteration
+        descent = DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, params)['descent']  # descent at time t, k-th iteration
         if armijo_cost[-1] <= (cost[kk]) + cc * gammas[-1] * descent:
             return gammas
 
