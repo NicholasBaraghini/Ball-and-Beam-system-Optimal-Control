@@ -24,7 +24,20 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     pp = np.zeros((nx, TT))
     PP = np.zeros((nx, nx, TT))
 
-    for tt in range(TT - 2, 0, -1):
+    xx_Tk = xx[:, TT-1:TT, kk:kk + 1]  # shape (4,1,1)
+    xx_ref_TT = xx_ref[:, TT-1:TT]  # shape (4,1)
+
+    # terminal cost at time t k-th iteration
+    trC = cost_function.Terminal_Cost(xx_Tk, xx_ref_TT, params)
+    cost_TT_kk = trC['cost_T']  # shape (4,4,1)
+    Lx_TT_kk = trC['DLx']  # shape (4,1)
+    Lxx_TT_kk = trC['DLxx']  # shape (4,4)
+
+    PP[:, :, TT - 1:TT] = np.reshape(Lxx_TT_kk, (4, 4, 1))
+    pp[:, TT - 1:TT] = Lx_TT_kk
+
+    for tt in range(TT - 2, -1, -1):
+
         # Parameters Definition
         uu_tk = uu[:, tt:tt + 1, kk:kk + 1] # shape (1,1,1)
         uu_ref_tt = uu_ref[:, tt:tt + 1] # shape (1,1)
@@ -54,12 +67,6 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         Lux_kk = stC['DLux'] # shape (1,4)
         Luu_kk = stC['DLuu'] # int
 
-        # terminal cost at time t k-th iteration
-        trC = cost_function.Terminal_Cost(xx_tk, xx_ref_tt, params)
-        cost_TT_kk = trC['cost_T'] # shape (4,4,1)
-        Lx_TT_kk = trC['DLx'] # shape (4,1)
-        Lxx_TT_kk = trC['DLxx'] # shape (4,4)
-
         # Gain Computation
         KS_dir_term = Luu_kk + sd.dot3(fu.T, PP_next, fu) + pfuu_kk  # term should be inverted
         KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
@@ -87,8 +94,6 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
 
-    PP[:, :, TT:TT + 1] = np.reshape(Lxx_TT_kk, (4, 4, 1))
-    pp[:, TT:TT + 1] = Lx_TT_kk
     # OUTPUTS:
     #   - KK      :
     #   - Sigma   :
@@ -134,7 +139,8 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
     # temporary variable initialization
     xx_temp = np.zeros((nx, TT))
     uu_temp = np.zeros((nu, TT))
-
+    #print('gamma {},armcost {}, xx_temp{},uu_temp{}'.format(gammas.shape,armijo_cost.shape,xx_temp.shape, uu_temp.shape,))
+    #wait = input('<ENTER>')
     # ARMIJO's LOOP
     while True:
         xx_temp[:, 0:1] = xx_init
@@ -142,17 +148,20 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
 
         for tt in range(0, TT - 1):
             uu_tk = np.reshape(uu[:, tt:tt + 1, kk:kk + 1], (1, 1))
+            #print('uu',uu[:, tt:tt + 1, kk:kk + 1].shape, 'uu_tk:', uu_tk.shape)
             uu_ref_tt = uu_ref[:, tt:tt + 1]
             uu_temp_tt = uu_temp[:, tt:tt + 1]
 
-            xx_tk = np.reshape(xx[:, tt:tt + 1, kk:kk + 1], (4, 1))
 
+            xx_tk = np.reshape(xx[:, tt:tt + 1, kk:kk + 1], (4,1))
+            #print('xx', xx[:, tt:tt + 1, kk:kk + 1], 'xx tk', xx_tk, 'shape:', type(xx_tk))
             xx_ref_tt = xx_ref[:, tt:tt + 1]
             xx_temp_tt = xx_temp[:, tt:tt + 1]
 
             pp_next = pp[:, tt + 1:tt + 2]
 
-            KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4))
+            KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1,4))
+            print('KK', KK, 'kk tt', KK_tt)
 
             # temporary input control computation
             uu_temp[:, tt:tt + 1] = uu_tk + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_temp_tt - xx_tk))
@@ -170,10 +179,14 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
         # Cost structure collecting the cost registered for each gamma (step size)
         armijo_cost = np.append(armijo_cost, np.reshape(cost_temp, 1))
 
-        if armijo_cost[-1] <= (cost[kk]) + cc * gammas[-1] * descent:
+        #print(armijo_cost, '..',((cost[kk]) + cc * gammas[-1] * descent))
+
+        if armijo_cost[-1] <= ((cost[kk]) + cc * gammas[-1] * descent):
+            #print(gammas)
             return gammas
 
         # Structure collecting all the gamma computed not satisfying the Armijo's condition
+
         gammas = np.append(gammas, beta * gammas[-1])
 
     # OUTPUT:
