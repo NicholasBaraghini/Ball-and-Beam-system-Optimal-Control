@@ -25,59 +25,70 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     PP = np.zeros((nx, nx, TT))
 
     for tt in range(TT - 2, 0, -1):
-        uu_tk = uu[:, tt:tt + 1, kk:kk + 1]
-        uu_ref_tt = uu_ref[:, tt:tt + 1]
-
-        xx_tk = xx[:, tt:tt + 1, kk:kk + 1]
-
-        xx_ref_tt = xx_ref[:, tt:tt + 1]
-
-        pp_next = pp[:, tt + 1:tt + 2]
-        SS_tt = SS[:, tt:tt + 1]
+        # Parameters Definition
+        uu_tk = uu[:, tt:tt + 1, kk:kk + 1] # shape (1,1,1)
+        uu_ref_tt = uu_ref[:, tt:tt + 1] # shape (1,1)
+        xx_tk = xx[:, tt:tt + 1, kk:kk + 1] # shape (4,1,1)
+        xx_ref_tt = xx_ref[:, tt:tt + 1] # shape (4,1)
+        pp_next = pp[:, tt + 1:tt + 2] # shape (4,1)
+        SS_tt = SS[:, tt:tt + 1] # shape (1,1)
+        PP_next = np.reshape(PP[:, :, tt + 1:tt + 2], (4, 4)) # shape (4,4)
+        KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4)) # shape (1,4)
 
         # System dynamics ar time t k-th iteration
         dyn = sd.BB_Dynamics(xx_tk, uu_tk, pp_next, params)
+        # System Dynamics parameters extraction
+        xx_next_kk = dyn['xx_next'] # shape (4,1)
+        fx = dyn['fx'] # shape (4,4)
+        fu = np.reshape(dyn['fu'], (4, 1)) # shape (4,1)
+        pfxx_kk = dyn['pfxx']  # shape (4,4)
+        pfux_kk = dyn['pfux']  # shape (1,4)
+        pfuu_kk = dyn['pfuu']  # shape (1,1)
+
         # stage cost at time t k-th iteration
         stC = cost_function.Stage_Cost(xx_tk, uu_tk, xx_ref_tt, uu_ref_tt, params)
+        cost_tt_kk = stC['cost_t'] # shape (4,4,1)
+        Lx_kk = stC['DLx'] # shape (4,1)
+        Lu_kk = stC['DLu'] # shape (1,)
+        Lxx_kk = stC['DLxx'] # shape (4,4)
+        Lux_kk = stC['DLux'] # shape (1,4)
+        Luu_kk = stC['DLuu'] # int
+
         # terminal cost at time t k-th iteration
         trC = cost_function.Terminal_Cost(xx_tk, xx_ref_tt, params)
+        cost_TT_kk = trC['cost_T'] # shape (4,4,1)
+        Lx_TT_kk = trC['DLx'] # shape (4,1)
+        Lxx_TT_kk = trC['DLxx'] # shape (4,4)
 
         # Gain Computation
-
-        PP_tt = np.reshape(PP[:, :, tt + 1:tt + 2], (4, 4))
-        fu = np.reshape(dyn['fu'], (4, 1))
-        fx = dyn['fx']
-        KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4))
-        KK_inv_tt = np.reshape(np.linalg.pinv(KK[:, :, tt:tt + 1]), (1, 4))
-
-        KS_dir_term = stC['DLuu'] + sd.dot3(fu.T, PP_tt, fu) + dyn['pfuu']
+        KS_dir_term = Luu_kk + sd.dot3(fu.T, PP_next, fu) + pfuu_kk  # term should be inverted
         KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
-        KK_dir_term = stC['DLux'] + sd.dot3(fu.T, PP_tt, fx) + dyn['pfux']  # second factor of the DDP gain formula
+        KK_dir_term = Lux_kk + sd.dot3(fu.T, PP_next, fx) + pfux_kk  # second factor of the DDP gain formula
 
-        KK[:, :, tt:tt + 1] = -np.matmul(KS_inv_term, KS_dir_term)
+        KK[:, :, tt:tt + 1] = - np.matmul(KS_inv_term, KS_dir_term)
 
         # Sigma Computation
-        SS_dir_term = stC['DLu'] + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
+        SS_dir_term = Lu_kk + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
 
         SS[:, tt:tt + 1] = -np.matmul(KS_inv_term, SS_dir_term)
 
         # PP update
-        PP_1_term = stC['DLxx'] + sd.dot3(fx.T, PP_tt, fx) + dyn['pfxx']  # PP first term (DDP formula)
-        PP_2_term = sd.dot3(KK_inv_tt.T, KS_dir_term, KK_tt)  # PP second term (DDP formula)
+        PP_1_term = Lxx_kk + sd.dot3(fx.T, PP_next, fx) + pfxx_kk  # PP first term (DDP formula)
+        PP_2_term = sd.dot3(KK_tt.T, KS_dir_term, KK_tt)  # PP second term (DDP formula)
 
         PP[:, :, tt:tt + 1] = np.reshape(PP_1_term - PP_2_term, (4, 4, 1))
-        PP[:, :, TT:TT + 1] = np.reshape(trC['DLxx'], (4, 4, 1))
 
         # pp update
-        pp_1_term = stC['DLx'] + np.matmul(fx.T, pp_next)  # PP first term (DDP formula)
-        pp_2_term = sd.dot3(KK_inv_tt.T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
+        pp_1_term = Lx_kk + np.matmul(fx.T, pp_next)  # PP first term (DDP formula)
+        pp_2_term = sd.dot3(KK_tt.T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
 
         pp[:, tt:tt + 1] = np.reshape(pp_1_term - pp_2_term, (4, 1))
-        pp[:, TT:TT + 1] = trC['DLx']
 
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
 
+    PP[:, :, TT:TT + 1] = np.reshape(Lxx_TT_kk, (4, 4, 1))
+    pp[:, TT:TT + 1] = Lx_TT_kk
     # OUTPUTS:
     #   - KK      :
     #   - Sigma   :
@@ -191,13 +202,13 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
     xx[:, 0:1, kk + 1:kk + 2] = np.reshape(xx_init, (4, 1, 1))
 
     for tt in range(0, TT - 1):
-        uu_tk = np.reshape(uu[:, tt:tt + 1, kk:kk + 1],(1,1))
+        uu_tk = np.reshape(uu[:, tt:tt + 1, kk:kk + 1], (1, 1))
         uu_ref_tt = uu_ref[:, tt:tt + 1]
         uu_next_tt = uu[:, tt:tt + 1, kk + 1:kk + 2]
 
-        xx_tk = np.reshape(xx[:, tt:tt + 1, kk:kk + 1],(4,1))
+        xx_tk = np.reshape(xx[:, tt:tt + 1, kk:kk + 1], (4, 1))
         xx_ref_tt = xx_ref[:, tt:tt + 1]
-        xx_next_tt = np.reshape(xx[:, tt:tt + 1, kk + 1:kk + 2], (4,1))
+        xx_next_tt = np.reshape(xx[:, tt:tt + 1, kk + 1:kk + 2], (4, 1))
 
         pp_next = pp[:, tt + 1:tt + 2]
 
