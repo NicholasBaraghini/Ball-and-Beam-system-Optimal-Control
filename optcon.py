@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib
 import cost_function
-import PPdynamics as sd
+import system_dynamic as sd
 
 
 # DDP Algorithm Components evaluated at k-th iteration
@@ -83,9 +83,6 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, TT, params):
         SS_dir_term = Lu_kk + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
 
         SS[:, tt:tt + 1] = -np.matmul(KS_inv_term, SS_dir_term)
-
-        if TT - 4 < tt < TT:
-            print('SS_term = ', tt, ': ', SS_dir_term)
 
         # PP update
         PP_1_term = Lxx_kk + sd.dot3(fx, PP_next, fx.T) + pfxx_kk  # PP first term (DDP formula)

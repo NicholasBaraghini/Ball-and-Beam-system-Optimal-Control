@@ -10,7 +10,8 @@ def dot3(a, B, c):
     #   a : row vector 1xN
     #   B : matrix NxN
     #   c : column vector Nx1
-    d = np.matmul(np.matmul(a, B), c)
+    H = np.matmul(B, c)
+    d = np.matmul(a, H)
 
     return d  # Returns the matrix product a*B*c
 
