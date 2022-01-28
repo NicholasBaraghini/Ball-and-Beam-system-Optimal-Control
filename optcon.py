@@ -109,7 +109,7 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         pp[:, tt:tt + 1] = np.reshape(pp_1_term - pp_2_term, (nx, 1))
         #print('pp[:, tt:tt + 1] RESHAPED :', pp[:, tt:tt + 1])
         # Descent Direction Computation
-        descent = descent - np.matmul(SS_tt.T, SS_tt)
+        descent -= - np.matmul(SS_tt.T, SS_tt)
 
     # OUTPUTS:
     #   - KK      :
