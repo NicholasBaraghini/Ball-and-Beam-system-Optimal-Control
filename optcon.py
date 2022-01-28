@@ -45,22 +45,29 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         xx_ref_tt = xx_ref[:, tt:tt + 1] # shape (4,1)
         pp_next = pp[:, tt + 1:tt + 2] # shape (4,1)
         SS_tt = SS[:, tt:tt + 1] # shape (1,1)
+
+        # print('PP[:, :, tt + 1:tt + 2] :', PP[:, :, tt + 1:tt + 2])
         PP_next = np.reshape(PP[:, :, tt + 1:tt + 2], (4, 4)) # shape (4,4)
+        # print('PP[:, :, tt + 1:tt + 2] reshaped :', PP_next)
+        # print('KK[:, :, tt:tt + 1] :', KK[:, :, tt:tt + 1])
         KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4)) # shape (1,4)
+        # print('KK[:, :, tt:tt + 1] reshaped :', KK_tt)
 
         # System dynamics ar time t k-th iteration
         dyn = sd.BB_Dynamics(xx_tk, uu_tk, pp_next, params)
         # System Dynamics parameters extraction
         xx_next_kk = dyn['xx_next'] # shape (4,1)
         fx = dyn['fx'] # shape (4,4)
+        # print('fu :', dyn['fu'])
         fu = np.reshape(dyn['fu'], (4, 1)) # shape (4,1)
+        # print('fu reshaped:', fu)
         pfxx_kk = dyn['pfxx']  # shape (4,4)
         pfux_kk = dyn['pfux']  # shape (1,4)
         pfuu_kk = dyn['pfuu']  # shape (1,1)
 
         # stage cost at time t k-th iteration
         stC = cost_function.Stage_Cost(xx_tk, uu_tk, xx_ref_tt, uu_ref_tt, params)
-        cost_tt_kk = stC['cost_t'] # shape (4,4,1)
+        # cost_tt_kk = stC['cost_t'] # shape (4,4,1)
         Lx_kk = stC['DLx'] # shape (4,1)
         Lu_kk = stC['DLu'] # shape (1,)
         Lxx_kk = stC['DLxx'] # shape (4,4)
@@ -72,7 +79,14 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
         KK_dir_term = Lux_kk + sd.dot3(fu.T, PP_next, fx) + pfux_kk  # second factor of the DDP gain formula
 
-        KK[:, :, tt:tt + 1] = - np.matmul(KS_inv_term, KS_dir_term)
+        #print('KS_inv shape:', KS_inv_term.shape)
+        #print('KK_dir shape:', KK_dir_term.shape)
+
+        #print('KK: ',np.matmul(KS_inv_term, KK_dir_term))
+        #print('KK reshappato: ', np.reshape(np.matmul(KS_inv_term, KK_dir_term), (1,4,1)))
+
+
+        KK[:, :, tt:tt + 1] = - np.reshape(np.matmul(KS_inv_term, KK_dir_term), (1,4,1))
 
         # Sigma Computation
         SS_dir_term = Lu_kk + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
@@ -83,13 +97,17 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         PP_1_term = Lxx_kk + sd.dot3(fx.T, PP_next, fx) + pfxx_kk  # PP first term (DDP formula)
         PP_2_term = sd.dot3(KK_tt.T, KS_dir_term, KK_tt)  # PP second term (DDP formula)
 
+        #print('PP[:, :, tt:tt + 1] :',PP[:, :, tt:tt + 1] )
         PP[:, :, tt:tt + 1] = np.reshape(PP_1_term - PP_2_term, (4, 4, 1))
+        #print('PP[:, :, tt:tt + 1] RESHAPED :', PP[:, :, tt:tt + 1])
 
         # pp update
         pp_1_term = Lx_kk + np.matmul(fx.T, pp_next)  # PP first term (DDP formula)
         pp_2_term = sd.dot3(KK_tt.T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
 
+        #print('pp[:, tt:tt + 1] :', pp[:, tt:tt + 1])
         pp[:, tt:tt + 1] = np.reshape(pp_1_term - pp_2_term, (4, 1))
+        #print('pp[:, tt:tt + 1] RESHAPED :', pp[:, tt:tt + 1])
 
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
@@ -108,7 +126,7 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         'pp': pp,
         'descent': descent
     }
-
+    print('DDP_comp FINISHED')
     return out
 
 
@@ -142,6 +160,8 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
     #print('gamma {},armcost {}, xx_temp{},uu_temp{}'.format(gammas.shape,armijo_cost.shape,xx_temp.shape, uu_temp.shape,))
     #wait = input('<ENTER>')
     # ARMIJO's LOOP
+    iter = 0
+    armijo_max_iter = 20
     while True:
         xx_temp[:, 0:1] = xx_init
         cost_temp = 0
@@ -161,10 +181,10 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
             pp_next = pp[:, tt + 1:tt + 2]
 
             KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1,4))
-            print('KK', KK, 'kk tt', KK_tt)
+            #print('KK', KK, 'kk tt', KK_tt)
 
             # temporary input control computation
-            uu_temp[:, tt:tt + 1] = uu_tk + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_temp_tt - xx_tk))
+            uu_temp[:, tt:tt + 1] = uu_tk + gammas[-1] *( Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_temp_tt - xx_tk)) )
             # temporary system dynamics computation
             xx_temp[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_temp_tt, uu_temp_tt, pp_next, params)['xx_next']
             # stage cost computation
@@ -180,11 +200,11 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
         armijo_cost = np.append(armijo_cost, np.reshape(cost_temp, 1))
 
         #print(armijo_cost, '..',((cost[kk]) + cc * gammas[-1] * descent))
-
-        if armijo_cost[-1] <= ((cost[kk]) + cc * gammas[-1] * descent):
-            #print(gammas)
+        if armijo_cost[-1] <= ((cost[kk]) + cc * gammas[-1] * descent):# or iter >= armijo_max_iter:
+            print('ARMIJO found')
             return gammas
 
+        iter += 1
         # Structure collecting all the gamma computed not satisfying the Armijo's condition
 
         gammas = np.append(gammas, beta * gammas[-1])
@@ -212,23 +232,23 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
     #   - pp       : vector p from the DDP algorithm
     #   - params   : parameter dictionary
 
-    xx[:, 0:1, kk + 1:kk + 2] = np.reshape(xx_init, (4, 1, 1))
+    xx[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(xx_init, (4, 1, 1))
 
     for tt in range(0, TT - 1):
-        uu_tk = np.reshape(uu[:, tt:tt + 1, kk:kk + 1], (1, 1))
-        uu_ref_tt = uu_ref[:, tt:tt + 1]
-        uu_next_tt = uu[:, tt:tt + 1, kk + 1:kk + 2]
+        uu_tk = np.reshape(uu[:, tt:(tt + 1), kk:(kk + 1)], (1, 1))
+        uu_ref_tt = uu_ref[:, tt:(tt + 1)]
+        uu_next_tt = uu[:, tt:(tt + 1), (kk + 1):(kk + 2)]
 
-        xx_tk = np.reshape(xx[:, tt:tt + 1, kk:kk + 1], (4, 1))
-        xx_ref_tt = xx_ref[:, tt:tt + 1]
-        xx_next_tt = np.reshape(xx[:, tt:tt + 1, kk + 1:kk + 2], (4, 1))
+        xx_tk = np.reshape(xx[:, tt:(tt + 1), kk:(kk + 1)], (4, 1))
+        xx_ref_tt = xx_ref[:, tt:(tt + 1)]
+        xx_next_tt = np.reshape(xx[:, tt:tt + 1, (kk + 1):(kk + 2)], (4, 1))
 
-        pp_next = pp[:, tt + 1:tt + 2]
+        pp_next = pp[:, (tt + 1):(tt + 2)]
 
-        KK_tt = np.reshape(KK[:, :, tt:tt + 1], (1, 4))
+        KK_tt = np.reshape(KK[:, :, tt:(tt + 1)], (1, 4))
 
         # Input vector update at time t
-        uu_temp = uu_tk + gamma * Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_next_tt - xx_tk))
+        uu_temp = uu_tk + gamma * ( Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_next_tt - xx_tk)) )
         uu[:, tt:tt + 1, kk + 1:kk + 2] = np.reshape(uu_temp, (1, 1, 1))
 
         # State vector update at time t
@@ -236,10 +256,10 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
         xx[:, tt + 1:tt + 2, kk + 1:kk + 2] = np.reshape(xx_temp, (4, 1, 1))
 
         # Cost Function Increment contribution at time t
-        cost[kk + 1] = cost[kk + 1] + cost_function.Stage_Cost(xx_next_tt, uu_next_tt, xx_ref_tt, uu_ref_tt, params)[
+        cost[kk+1] = cost[kk+1] + cost_function.Stage_Cost(xx_next_tt, uu_next_tt, xx_ref_tt, uu_ref_tt, params)[
             'cost_t']
 
-    cost[kk + 1] = cost[kk + 1] + cost_function.Terminal_Cost(xx_next_tt, xx_ref_tt, params)['cost_T']
+    cost[kk+1] = cost[kk+1] + cost_function.Terminal_Cost(xx_next_tt, xx_ref_tt, params)['cost_T']
 
     out = {
         'xx': xx,
