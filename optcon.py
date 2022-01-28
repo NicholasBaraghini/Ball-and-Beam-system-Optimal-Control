@@ -74,12 +74,11 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
         Lux_kk = stC['DLux'] # shape (1,4)
         Luu_kk = stC['DLuu'] # int
 
+
         # Gain Computation
         KS_dir_term = Luu_kk + sd.dot3(fu.T, PP_next, fu) + pfuu_kk  # term should be inverted
         KS_inv_term = np.linalg.inv(KS_dir_term)  # inverse factor of the DDP gain formula
-        KK_dir_term = Lux_kk + sd.dot3(fu.T, PP_next, fx) + pfux_kk  # second factor of the DDP gain formula
-
-        print('KS dir: ', KS_dir_term)
+        KK_dir_term = Lux_kk + sd.dot3(fu.T, PP_next, fx.T) + pfux_kk  # second factor of the DDP gain formula
 
         #print('KS_inv shape:', KS_inv_term.shape)
         #print('KK_dir shape:', KK_dir_term.shape)
@@ -89,28 +88,26 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
 
 
         KK[:, :, tt:tt + 1] = - np.reshape(np.matmul(KS_inv_term, KK_dir_term), (1,nx,1))
-
         # Sigma Computation
         SS_dir_term = Lu_kk + np.matmul(fu.T, pp_next)  # second factor of the DDP sigma formula
 
         SS[:, tt:tt + 1] = -np.matmul(KS_inv_term, SS_dir_term)
-        print('SS : ',SS[:, tt:tt + 1])
         # PP update
-        PP_1_term = Lxx_kk + sd.dot3(fx.T, PP_next, fx) + pfxx_kk  # PP first term (DDP formula)
+        PP_1_term = Lxx_kk + sd.dot3(fx, PP_next, fx.T) + pfxx_kk  # PP first term (DDP formula)
         PP_2_term = sd.dot3(KK_tt.T, KS_dir_term, KK_tt)  # PP second term (DDP formula)
-
         #print('PP[:, :, tt:tt + 1] :',PP[:, :, tt:tt + 1] )
         PP[:, :, tt:tt + 1] = np.reshape(PP_1_term - PP_2_term, (nx, nx, 1))
+
+
         #print('PP[:, :, tt:tt + 1] RESHAPED :', PP[:, :, tt:tt + 1])
 
         # pp update
-        pp_1_term = Lx_kk + np.matmul(fx.T, pp_next)  # PP first term (DDP formula)
+        pp_1_term = Lx_kk + np.matmul(fx, pp_next)  # PP first term (DDP formula)
         pp_2_term = sd.dot3(KK_tt.T, KS_dir_term, SS_tt)  # PP second term (DDP formula)
 
         #print('pp[:, tt:tt + 1] :', pp[:, tt:tt + 1])
         pp[:, tt:tt + 1] = np.reshape(pp_1_term - pp_2_term, (nx, 1))
         #print('pp[:, tt:tt + 1] RESHAPED :', pp[:, tt:tt + 1])
-
         # Descent Direction Computation
         descent = descent - np.matmul(SS_tt.T, SS_tt)
 
@@ -132,7 +129,6 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, descent, TT, params):
     return out
 
 
-# %%
 # ARMIJO's Function
 
 def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sigma, KK, pp, params):

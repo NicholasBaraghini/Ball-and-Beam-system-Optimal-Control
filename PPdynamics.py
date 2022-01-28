@@ -5,7 +5,8 @@ def dot3(a, B, c):
     #   a : row vector 1xN
     #   B : matrix NxN
     #   c : column vector Nx1
-    d = np.matmul(np.matmul(a, B), c)
+    H = np.matmul(B, c)
+    d = np.matmul(a,H)
 
     return d  # Returns the matrix product a*B*c
 
@@ -26,10 +27,10 @@ def BB_Dynamics(xx,uu,pp,params):
 
 
     xx_plus[0] = xx[0] + dt* xx[1]
-    xx_plus[1] = xx[1] + dt* (-gg/ll*np.sin(xx[0]) - (kk/(mm * ll)) * xx[1] + uu / (mm * ll**2))
+    xx_plus[1] = xx[1] + dt* ((gg/ll)*np.sin(xx[0]) - (kk/(mm * ll)) * xx[1] + uu / (mm * ll**2))
 
     #gradient
-    fx = np.array([[1, -dt * gg/ll * np.cos(xx[0])],
+    fx = np.array([[1, dt * (gg/ll) * np.cos(xx[0])],
                    [dt, 1 + dt * (-kk / (mm*ll))]])
 
     fu = np.array([[0, dt * 1 / (mm * (ll**2))]])
@@ -38,7 +39,7 @@ def BB_Dynamics(xx,uu,pp,params):
     pfuu = np.zeros((nu,nu))
     pfux = np.zeros((nu,ns))
 
-    pfxx[0,0] = pp[1] * (dt * gg/ll * np.sin(xx[0]))
+    pfxx[0,0] = pp[1] * (-dt * gg/ll * np.sin(xx[0]))
 
     out = {
         'xx_next': xx_plus,
