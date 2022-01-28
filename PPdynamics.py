@@ -1,6 +1,15 @@
 import numpy as np
 
-def PPdynamics(xx,uu,pp,params):
+def dot3(a, B, c):
+    # INPUTS:
+    #   a : row vector 1xN
+    #   B : matrix NxN
+    #   c : column vector Nx1
+    d = np.matmul(np.matmul(a, B), c)
+
+    return d  # Returns the matrix product a*B*c
+
+def BB_Dynamics(xx,uu,pp,params):
     ns = 2
     nu = 1
 
@@ -23,7 +32,7 @@ def PPdynamics(xx,uu,pp,params):
     fx = np.array([[1, -dt * gg/ll * np.cos(xx[0])],
                    [dt, 1 + dt * (-kk / (mm*ll))]])
 
-    fu = np.array([[0, dt * 1 / (mm * (ll**2)]]))
+    fu = np.array([[0, dt * 1 / (mm * (ll**2))]])
 
     pfxx = np.zeros((ns,ns))
     pfuu = np.zeros((nu,nu))

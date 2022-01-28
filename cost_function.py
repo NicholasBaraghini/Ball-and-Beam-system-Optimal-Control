@@ -1,7 +1,7 @@
 ## Libraries
 import numpy as np
 import matplotlib
-import system_dynamic
+import PPdynamics as sd
 import optcon
 
 
@@ -21,7 +21,7 @@ def Stage_Cost(xx, uu, xx_ref, uu_ref, params):
     nx = np.shape(xx_ref)[0]  # state vector dimension
     nu = np.shape(uu_ref)[0]  # input vector dimension
 
-    xx = np.reshape(xx, (4,1))
+    xx = np.reshape(xx, (nx,1))
     uu = np.reshape(uu, 1)
     uu_ref = np.reshape(uu_ref, 1)
 
@@ -30,7 +30,7 @@ def Stage_Cost(xx, uu, xx_ref, uu_ref, params):
 
     # input_err = np.reshape(input_err, 1)
 
-    L_t = np.reshape(system_dynamic.dot3(state_err.T, QQ, state_err),1) + RR * (input_err ** 2)  # cost function evaluated at time t
+    L_t = np.reshape(sd.dot3(state_err.T, QQ, state_err),1) + RR * (input_err ** 2)  # cost function evaluated at time t
 
     # GRADIENTS
     DLx = 2 * np.matmul(QQ, xx) - 2 * np.matmul(QQ, xx_ref)
@@ -72,11 +72,11 @@ def Terminal_Cost(xx_T, xx_T_ref, params):
     QQ_T = params['QQ_T']
 
     nx = np.shape(xx_T_ref)[0]  # number of rows of xx_T_ref
-    xx_T = np.reshape(xx_T, (4, 1))
+    xx_T = np.reshape(xx_T, (nx, 1))
 
     state_err = (xx_T - xx_T_ref)
 
-    L_T = np.reshape(system_dynamic.dot3(state_err.T, QQ_T, state_err), 1)  # cost function evaluated at final time T
+    L_T = np.reshape(sd.dot3(state_err.T, QQ_T, state_err), 1)  # cost function evaluated at final time T
 
     # GRADIENTS
     DLx = 2 * np.matmul(QQ_T, xx_T) - 2 * np.matmul(QQ_T, xx_T_ref)
