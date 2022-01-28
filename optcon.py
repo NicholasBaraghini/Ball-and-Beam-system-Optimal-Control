@@ -184,7 +184,7 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
             #print('KK', KK, 'kk tt', KK_tt)
 
             # temporary input control computation
-            uu_temp[:, tt:tt + 1] = uu_tk + gammas[-1] *( Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_temp_tt - xx_tk)) )
+            uu_temp[:, tt:tt + 1] = uu_tk + gammas[-1] * Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_temp_tt - xx_tk))
             # temporary system dynamics computation
             xx_temp[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_temp_tt, uu_temp_tt, pp_next, params)['xx_next']
             # stage cost computation
@@ -248,7 +248,7 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
         KK_tt = np.reshape(KK[:, :, tt:(tt + 1)], (1, 4))
 
         # Input vector update at time t
-        uu_temp = uu_tk + gamma * ( Sigma[:, tt:tt + 1] + np.matmul(KK_tt, (xx_next_tt - xx_tk)) )
+        uu_temp = uu_tk + gamma * Sigma[:, tt:tt + 1] - np.matmul(KK_tt, (xx_next_tt - xx_tk))
         uu[:, tt:tt + 1, kk + 1:kk + 2] = np.reshape(uu_temp, (1, 1, 1))
 
         # State vector update at time t
