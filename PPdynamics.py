@@ -6,7 +6,8 @@ def dot3(a, B, c):
     #   B : matrix NxN
     #   c : column vector Nx1
     H = np.matmul(B, c)
-    d = np.matmul(a, H)
+    d = np.matmul(a,H)
+    #GIMMY
 
     return d  # Returns the matrix product a*B*c
 
@@ -15,7 +16,7 @@ def BB_Dynamics(xx,uu,pp,params):
     nu = 1
 
     xx_plus = np.zeros((ns,1))
-    gg = 9.8
+    gg = 9.81
     ll = 1
     kk = 0
     mm = 1

@@ -12,9 +12,8 @@ def dot3(a, B, c):
     #   c : column vector Nx1
     H = np.matmul(B, c)
     d = np.matmul(a, H)
-
-    return d  # Returns the matrix product a*B*c
-
+    # GIMMY
+    return d
 
 # SYSTEM DYNAMICS (Ball and Beam)
 
