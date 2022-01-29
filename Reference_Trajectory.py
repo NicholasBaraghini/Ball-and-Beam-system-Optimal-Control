@@ -77,12 +77,12 @@ def Spline_Ref(Time, params, x_point, t_point, plot, TT, dim):
 
     uu_ref0 = params['mm'] * params['gg'] * xx_ref0
 
-    xx_ref = np.zeros((dim[0], TT));
-    xx_ref[0, 0:TT] = xx_ref0;
+    xx_ref = np.zeros((dim[0], TT))
+    xx_ref[0, 0:TT] = xx_ref0
 
     # input reference definition
-    uu_ref = np.zeros((dim[1], TT));
-    uu_ref[0, 0:TT] = uu_ref0;
+    uu_ref = np.zeros((dim[1], TT))
+    uu_ref[0, 0:TT] = uu_ref0
 
     out = {
         'xx_ref':xx_ref,
