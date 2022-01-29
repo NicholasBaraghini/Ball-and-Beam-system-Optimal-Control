@@ -215,7 +215,7 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
 
     xx[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(xx_init, (nx, 1, 1))
 
-    for tt in range(0, TT - 2):
+    for tt in range(0, TT - 1):
         uu_tk = np.reshape(uu[:, tt:(tt + 1), kk:(kk + 1)], (1, 1))
         uu_ref_tt = uu_ref[:, tt:(tt + 1)]
         uu_next_tt = uu[:, tt:(tt + 1), (kk + 1):(kk + 2)]
