@@ -7,7 +7,7 @@ def Cubic_Ref(time,params,plot,TT,dim):
     t1= np.arange(0, time[0], 0.0001)
     Tf1 = time[0]
     L = params['LL']
-    a2 = 9 / 8 * L;
+    a2 = 9 / 8 * L
     a3 = -3 / 4 * L
     cycle1 = a2 * (t1 ** 2) + a3 * (t1 ** 3)
     cycle1_vel = 2 * t1 * a2 + 3 * a3 * (t1 ** 2)
