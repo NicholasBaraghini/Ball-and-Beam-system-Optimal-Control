@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib
 import cost_function
 import system_dynamic as sd
+
+
 # import PPdynamics as sd
 
 # DDP Algorithm Components evaluated at k-th iteration
@@ -242,6 +244,11 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
 
     cost[kk + 1] = cost[kk + 1] + cost_function.Terminal_Cost(xx_next_tt, xx_ref_tt, params)['cost_T']
 
+    # OUTPUTS:
+    #   - xx : state update at k-th iteration
+    #   - uu : input optimized at k-th iteration
+    #   - cost: cost computed at the k-th iteration
+
     out = {
         'xx': xx,
         'uu': uu,
@@ -250,12 +257,67 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
 
     return out
 
-def Trajectory_Tracking(xx_opt, uu_opt, xx_init, params):
+
+def Trajectory_Tracking(xx_opt, uu_opt, xx_init, TT, params):
     # INPUTS:
     #   - xx_opt   : optimal states at each time t from 0 to T
     #   - uu_opt   : optimal input at each time t from 0 to T
-    #   - xx_init  : initial
+    #   - xx_init  : initial state
     #   - params   : parameter dictionary
 
+    nx = params['dimx']
+    nu = params['dimu']
+    QQ = params['QQ']
+    RR = params['RR']
 
+    xx_track = np.zeros((nx, TT))
+    uu_track = np.zeros((nu, TT))
 
+    # Iitialization
+    AA = np.zeros((nx, nx, TT))
+    BB = np.zeros((nu, nu, TT))
+
+    PP = np.zeros((nx, nx, TT))
+    KK = np.zeros((nu, nx, TT))
+
+    pp = np.ones((nx, 1))
+
+    PP[:, :, TT - 1:TT] = QQ
+    for tt in range(TT - 2, -1, -1):
+        # Dynamics Linearization at time t
+        dyn = sd.BB_Dynamics(xx_opt[:, tt:tt + 1], uu_opt[:, tt:tt + 1], pp, params)
+        AA[:, :, tt:tt + 1] = dyn['fx']  # WARNING : forse da trasporre
+        BB[:, :, tt:tt + 1] = dyn['fu']  # WARNING : forse da trasporre
+
+        # Useful Notation
+        AAt = AA[:, :, tt:tt + 1]
+        BBt = BB[:, :, tt:tt + 1]
+        PPt_next = PP[:, :, tt + 1:tt + 2]
+
+        # Update of PP
+        AA_PP_AA = sd.dot3(AAt.T, PPt_next, AAt)
+        BB_PP_BB = sd.dot3(BBt.T, PPt_next, BBt)
+        RR_BPB_inv = np.linalg.inv((RR + BB_PP_BB))
+        BB_PP_AA = sd.dot3(BBt.T, PPt_next, AAt)
+
+        PP[:, :, tt:tt + 1] = QQ + AA_PP_AA - sd.dot3(AA_PP_AA, RR_BPB_inv, BB_PP_AA)
+
+        # Gain Update
+        KK[:, :, tt:tt + 1] = - np.matmul(RR_BPB_inv, BB_PP_AA)
+
+    xx_track[:, 0:1] = xx_init  # initial state
+    # Tracking Control
+    for tt in range(0, TT):
+        uu_track[:, tt:tt + 1] = uu_opt[:, tt:tt + 1] + np.matmul(KK[:, :, tt:tt + 1],
+                                                                  (xx_track[:, tt:tt + 1] - xx_opt[:, tt:tt + 1]))
+
+        xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)[
+            'xx_next']
+    # OUTPUTS:
+    #   - xx_track : state tracking from the optimal control
+    #   - uu_track : optimal control input
+
+    out = {
+        'xx_track': xx_track,
+        'uu_track': uu_track
+    }
