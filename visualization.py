@@ -6,6 +6,9 @@ from matplotlib import rc
 import numpy as np
 from collections import deque
 
+import matplotlib
+matplotlib.rcParams['animation.embed_limit'] = 10**128
+
 rc('animation', html='jshtml')
 
 # FUNCTIONS DEFINITION
@@ -82,5 +85,4 @@ def animate(x_limit, y_limit, history_len, ball_radius, beam_length, t, theta, x
                          interval=t * 1000,
                          blit=False,
                          repeat=True)
-
     return anim
