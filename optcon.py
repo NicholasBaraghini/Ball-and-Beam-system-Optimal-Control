@@ -249,3 +249,13 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
     }
 
     return out
+
+def Trajectory_Tracking(xx_opt, uu_opt, xx_init, params):
+    # INPUTS:
+    #   - xx_opt   : optimal states at each time t from 0 to T
+    #   - uu_opt   : optimal input at each time t from 0 to T
+    #   - xx_init  : initial
+    #   - params   : parameter dictionary
+
+
+
