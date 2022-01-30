@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib
 import cost_function
 import system_dynamic as sd
-
+# import PPdynamics as sd
 
 # DDP Algorithm Components evaluated at k-th iteration
 def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, TT, params):

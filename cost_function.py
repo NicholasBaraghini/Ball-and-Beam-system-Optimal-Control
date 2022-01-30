@@ -1,7 +1,8 @@
 ## Libraries
 import numpy as np
 import matplotlib
-import system_dynamic
+import system_dynamic as sd
+# import PPdynamics as sd
 import optcon
 
 
@@ -30,7 +31,7 @@ def Stage_Cost(xx, uu, xx_ref, uu_ref, params):
 
     # input_err = np.reshape(input_err, 1)
 
-    L_t = np.reshape(system_dynamic.dot3(state_err.T, QQ, state_err),1) + RR * (input_err ** 2)  # cost function evaluated at time t
+    L_t = np.reshape(sd.dot3(state_err.T, QQ, state_err),1) + RR * (input_err ** 2)  # cost function evaluated at time t
 
     # GRADIENTS
     DLx = 2 * np.matmul(QQ, xx) - 2 * np.matmul(QQ, xx_ref)
@@ -76,7 +77,7 @@ def Terminal_Cost(xx_T, xx_T_ref, params):
 
     state_err = (xx_T - xx_T_ref)
 
-    L_T = np.reshape(system_dynamic.dot3(state_err.T, QQ_T, state_err), 1)  # cost function evaluated at final time T
+    L_T = np.reshape(sd.dot3(state_err.T, QQ_T, state_err), 1)  # cost function evaluated at final time T
 
     # GRADIENTS
     DLx = 2 * np.matmul(QQ_T, xx_T) - 2 * np.matmul(QQ_T, xx_T_ref)
