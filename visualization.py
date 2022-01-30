@@ -7,7 +7,7 @@ import numpy as np
 from collections import deque
 
 import matplotlib
-matplotlib.rcParams['animation.embed_limit'] = 10**128
+matplotlib.rcParams['animation.embed_limit'] = 5**128
 
 rc('animation', html='jshtml')
 
