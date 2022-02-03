@@ -313,8 +313,8 @@ def Trajectory_Tracking(xx_opt, uu_opt, xx_init, TT, params):       #LQR with Ri
         uu_track[:, tt:tt + 1] = uu_opt[:, tt:tt + 1] + np.matmul(np.reshape(KK[:, :, tt:tt + 1],(nu,nx)),
                                                                   (xx_track[:, tt:tt + 1] - xx_opt[:, tt:tt + 1]))
 
-        # xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)['xx_next']
-            # System dynamics + disturbance on the state
+        # xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp,
+        # params)['xx_next'] System dynamics + disturbance on the state
         xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)['xx_next'] + np.array([[np.random.normal(scale=0.0005, size=None),
                                                                                                                                         np.random.normal(scale=1E-5, size=None),
                                                                                                                                         np.random.normal(scale=1E-5, size=None),
