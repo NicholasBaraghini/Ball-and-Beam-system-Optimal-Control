@@ -10,6 +10,8 @@ def dot3(a, B, c):
     #   a : row vector 1xN
     #   B : matrix NxN
     #   c : column vector Nx1
+    #OUTPUT:
+    #   d : quadratic term a' * B * c
     H = np.matmul(B, c)
     d = np.matmul(a, H)
 
@@ -24,8 +26,15 @@ def BB_Dynamics(xx, uu, pp, params):
     # INPUTS:
     #   - XX    : system state at current time t
     #   - uu    : input at current time t
-    #   - pp    : tensor product term
+    #   - pp    : costate pp (in order to perform the tensor product)
     #   - params: list of parameters
+    # OUTPUTS: (the function returns an output dictionary with the follows entries)
+    #   - xx_next : system state at state (t+1)
+    #   - fx     : gradient of the system dynamics w.r.t. the system state at time t
+    #   - fu     : gradient of the system dynamics w.r.t. the input at time t
+    #   - pfxx   : tensor product within the dynamics function seconnd order derivative w.r.t. the state, given vector pp
+    #   - pfux   : tensor product within the dynamics function seconnd order derivative w.r.t. input and state, given vector pp
+    #   - pfuu   : tensor product within the dynamics function second order derivative w.r.t. input, given vector pp
 
     # PARAMETERS EXTRACTION:
     dt = params['dt']  # Step size - Forward Euler method
@@ -141,13 +150,6 @@ def BB_Dynamics(xx, uu, pp, params):
     # pfux has only one non-null element
     pfux[0, 0] = pp[3] * (- 2 * mm * xx[0]) * (d2 ** 2) * dt
 
-    # OUTPUTS: (the function returns an output dictionary with the follows entries)
-    #   - xx_next : system state at state (t+1)
-    #   - fx     : gradient of the system dynamics w.r.t. the system state at time t
-    #   - fu     : gradient of the system dynamics w.r.t. the input at time t
-    #   - pfxx   : tensor product within the dynamics function seconnd order derivative w.r.t. the state, given vector pp
-    #   - pfux   : tensor product within the dynamics function seconnd order derivative w.r.t. input and state, given vector pp
-    #   - pfuu   : tensor product within the dynamics function second order derivative w.r.t. input, given vector pp
     out = {
         'xx_next': xx_next,
         'fx': fx,
