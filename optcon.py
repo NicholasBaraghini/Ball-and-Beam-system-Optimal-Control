@@ -112,7 +112,7 @@ def DDP_comp_t_k(kk, xx, uu, xx_ref, uu_ref, TT, params):
 
 # ARMIJO's Function
 
-def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sigma, KK, pp, params):
+def Armijo(kk, xx, uu, xx_init, init_inp, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sigma, KK, pp, params):
     # INPUTS:
     #   - kk       : actual iteration
     #   - xx_init  : system initial state at time t=0
@@ -140,13 +140,11 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
     # temporary variable initialization
     xx_temp = np.zeros((nx, TT))
     uu_temp = np.zeros((nu, TT))
-    # print('gamma {},armcost {}, xx_temp{},uu_temp{}'.format(gammas.shape,armijo_cost.shape,xx_temp.shape, uu_temp.shape,))
-    # wait = input('<ENTER>')
     # ARMIJO's LOOP
     iter = 0
-    armijo_max_iter = 20
     while True:
         xx_temp[:, 0:1] = xx_init
+        uu_temp[:, 0:1] = init_inp
         cost_temp = 0
 
         for tt in range(0, TT - 1):
@@ -194,7 +192,7 @@ def Armijo(kk, xx, uu, xx_init, xx_ref, uu_ref, TT, cost, descent, cc, beta, Sig
 
 
 # Function implemented to update the Trajectory state and input
-def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigma, KK, pp, params):
+def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init,TT, cost, gamma, Sigma, KK, pp, params):
     # INPUTS:
     #   - kk       : actual iteration
     #   - xx       : system state tensor
@@ -215,10 +213,13 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
     #   -cost      :cost of the trajectory simulated at the iteration kk
 
     nx = params['dim_X']  # state vector dimension
-    # nu = params['dim_U']  # input vector dimension
+    nu = params['dim_U']  # input vector dimension
 
+    #prepare the vector for being used
     xx[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(xx_init, (nx, 1, 1))
+    uu[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(uu_init, (nu, 1, 1))
 
+    #Trajectory update
     for tt in range(0, TT - 1):
         uu_tk = np.reshape(uu[:, tt:(tt + 1), kk:(kk + 1)], (1, 1))
         uu_ref_tt = uu_ref[:, tt:(tt + 1)]
@@ -256,7 +257,7 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, TT, cost, gamma, Sigm
 
 
 
-def Trajectory_Tracking(xx_opt, uu_opt, xx_init, TT, params):       #LQR with Riccati
+def Trajectory_Tracking(xx_opt, uu_opt, xx_init, uu_init, TT, noise, params):       #LQR with Riccati
     # INPUTS:
     #   - xx_opt   : optimal states at each time t from 0 to T
     #   - uu_opt   : optimal input at each time t from 0 to T
@@ -308,17 +309,20 @@ def Trajectory_Tracking(xx_opt, uu_opt, xx_init, TT, params):       #LQR with Ri
         KK[:, :, tt:tt + 1] = np.reshape(-np.matmul(RR_BPB_inv, BB_PP_AA), (nu,nx,1))
 
     xx_track[:, 0:1] = xx_init  # initial state
+    uu_track[:, 0:1] = uu_init  # initial input
+
     # Tracking Control
+
     for tt in range(0, TT):
         uu_track[:, tt:tt + 1] = uu_opt[:, tt:tt + 1] + np.matmul(np.reshape(KK[:, :, tt:tt + 1],(nu,nx)),
                                                                   (xx_track[:, tt:tt + 1] - xx_opt[:, tt:tt + 1]))
+        if not noise:
+            xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)[
+                'xx_next']
+        else:
+            xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)[
+            'xx_next'] + np.array([[np.random.normal(scale=0.0005, size=None),np.random.normal(scale=1E-5, size=None),np.random.normal(scale=1E-5, size=None),np.random.normal(scale=1E-6, size=None)]]).T
 
-        # xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp,
-        # params)['xx_next'] System dynamics + disturbance on the state
-        xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)['xx_next'] + np.array([[np.random.normal(scale=0.0005, size=None),
-                                                                                                                                        np.random.normal(scale=1E-5, size=None),
-                                                                                                                                        np.random.normal(scale=1E-5, size=None),
-                                                                                                                                        np.random.normal(scale=1E-6, size=None)]]).T
     # OUTPUTS:
     #   - xx_track : state tracking from the optimal control
     #   - uu_track : optimal control input
