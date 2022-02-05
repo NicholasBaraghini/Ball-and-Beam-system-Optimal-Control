@@ -46,7 +46,8 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 ![Task_1](https://user-images.githubusercontent.com/76887265/152637823-37191b5f-22f0-48da-a62b-400e1c066bf6.gif)
 
 #### Task 1 (multi-step)
-![Task_1_2](https://user-images.githubusercontent.com/76887265/152637860-04221cc1-31ac-4191-9ad0-d7d2a5ac0798.gif)
+![Task_1_2](https://user-images.githubusercontent.com/76887265/152638321-556cf99f-5b52-4d22-a843-bbaaf5055d90.gif)
+
 
 
 
