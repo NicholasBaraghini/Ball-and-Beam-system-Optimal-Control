@@ -22,14 +22,14 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 ### Task 2 - Trajectory Optimization
 Define the reference (quasi) trajectory which the ball needs to follow exploitingthe DDP algorithm to compute the optimal trajectory
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_Grp21_Ball_and_Beam_Project.ipynb). Or download and run it!
+See the results in [this jupyter notebook]() for the DDP algorithm apllied on the quasi-static reference trajectory. Or download and run it!
 
 ![result example in Task 2]()
 
 ### Task 3 - Trajectory Tracking
 Linearizing the system dynamics about the (optimal) trajectory (x, u) computed in Task 2, exploit the LQR algorithm to define the optimal feedback controller to track this reference trajectory.
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_Grp21_Ball_and_Beam_Project.ipynb).Or download and run it!
+See the results in [this jupyter notebook]().Or download and run it!
 
 #### results without noise
 ![state_track](https://user-images.githubusercontent.com/76887265/152638125-d0a590ff-94eb-4715-a37e-c885f61dc2ea.jpg)
@@ -48,7 +48,17 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 #### Task 1 (multi-step)
 ![Task_1_2](https://user-images.githubusercontent.com/76887265/152638321-556cf99f-5b52-4d22-a843-bbaaf5055d90.gif)
 
+#### Task 2 (quasi-stationary trajectory)
+![Task_2_qs_traj](https://user-images.githubusercontent.com/76887265/152655379-70e10030-dd35-43ef-8c77-49af63dd1256.gif)
 
+#### Task 2 (refined trajectory)
+![Task_2_traj](https://user-images.githubusercontent.com/76887265/152655393-a9563583-abd1-4e2a-9e59-7507462c7f25.gif)
+
+#### Task 3 (without noise, initial consitions disturbed)
+![Task_3_init_dist](https://user-images.githubusercontent.com/76887265/152655423-54a6b81c-91fc-405d-8b85-77495d0af5db.gif)
+
+#### Task 3 (with noise)
+![Task_3_noise](https://user-images.githubusercontent.com/76887265/152655442-06022776-1525-4ed4-aeb7-68bab92952d0.gif)
 
 
 ### Team
