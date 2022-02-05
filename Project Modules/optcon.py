@@ -1,7 +1,10 @@
 # Libraries
 import numpy as np
+import matplotlib
 import cost_function
 import system_dynamic as sd
+
+
 # import PPdynamics as sd
 
 # DDP Algorithm Components evaluated at k-th iteration
@@ -189,7 +192,6 @@ def Armijo(kk, xx, uu, xx_init, init_inp, xx_ref, uu_ref, TT, cost, descent, cc,
         gammas = np.append(gammas, beta * gammas[-1])
 
 
-
 # Function implemented to update the Trajectory state and input
 def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, TT, cost, gamma, Sigma, KK, pp, params):
     # INPUTS:
@@ -206,7 +208,7 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, TT, cost, ga
     #   - KK       : Feedback Gain Matrix frm the DDP algorithm
     #   - pp       : vector p from the DDP algorithm
     #   - params   : parameter dictionary
-    #OUTPUTS:
+    # OUTPUTS:
     #   -xx        :forward simulation of state at the iteration kk
     #   -uu        :forward simulation of the input at the iteration kk
     #   -cost      :cost of the trajectory simulated at the iteration kk
@@ -214,11 +216,11 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, TT, cost, ga
     nx = params['dim_X']  # state vector dimension
     nu = params['dim_U']  # input vector dimension
 
-    #prepare the vector for being used
+    # prepare the vector for being used
     xx[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(xx_init, (nx, 1, 1))
     uu[:, 0:1, (kk + 1):(kk + 2)] = np.reshape(uu_init, (nu, 1, 1))
 
-    #Trajectory update
+    # Trajectory update
     for tt in range(0, TT - 1):
         uu_tk = np.reshape(uu[:, tt:(tt + 1), kk:(kk + 1)], (1, 1))
         uu_ref_tt = uu_ref[:, tt:(tt + 1)]
@@ -255,20 +257,19 @@ def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, TT, cost, ga
     return out
 
 
-
-def Trajectory_Tracking(xx_opt, uu_opt, xx_init, uu_init, TT, noise, params):       #LQR with Riccati
+def Trajectory_Tracking(xx_opt, uu_opt, xx_init, uu_init, TT, noise, params):  # LQR with Riccati
     # INPUTS:
     #   - xx_opt   : optimal states at each time t from 0 to T
     #   - uu_opt   : optimal input at each time t from 0 to T
     #   - xx_init  : initial state
     #   - params   : parameter dictionary
-    #OUTPUTS:
+    # OUTPUTS:
     #   - xx_track : optimal feedback control state tracking the reference trajectory from initial position
     #   - uu_track : optimal feedback control input tracking the reference trajectory from initial position
     nx = params['dim_X']
     nu = params['dim_U']
     QQ = params['QQ_track']
-    QQ_T = np.reshape(params['QQ_track_T'], (nx,nx,1))
+    QQ_T = np.reshape(params['QQ_track_T'], (nx, nx, 1))
     RR = params['RR_track']
 
     xx_track = np.zeros((nx, TT))
@@ -287,25 +288,25 @@ def Trajectory_Tracking(xx_opt, uu_opt, xx_init, uu_init, TT, noise, params):   
     for tt in range(TT - 2, -1, -1):
         # Dynamics Linearization at time t
         dyn = sd.BB_Dynamics(xx_opt[:, tt:tt + 1], uu_opt[:, tt:tt + 1], pp, params)
-        AA[:, :, tt:tt + 1] = np.reshape(dyn['fx'].T, (nx,nx,1))  # WARNING : forse da trasporre
-        BB[:, :, tt:tt + 1] = np.reshape(dyn['fu'], (nx,nu,1))   # WARNING : forse da trasporre
+        AA[:, :, tt:tt + 1] = np.reshape(dyn['fx'].T, (nx, nx, 1))  # WARNING : forse da trasporre
+        BB[:, :, tt:tt + 1] = np.reshape(dyn['fu'], (nx, nu, 1))  # WARNING : forse da trasporre
 
         # Useful Notation
-        AAt = np.reshape(AA[:, :, tt:tt + 1], (nx,nx))
+        AAt = np.reshape(AA[:, :, tt:tt + 1], (nx, nx))
         BBt = np.reshape(BB[:, :, tt:tt + 1], (nx, nu))
-        PPt_next = np.reshape(PP[:, :, tt + 1:tt + 2], (nx,nx))
+        PPt_next = np.reshape(PP[:, :, tt + 1:tt + 2], (nx, nx))
 
         # Update of PP
         AA_PP_AA = sd.dot3(AAt.T, PPt_next, AAt)
         BB_PP_BB = sd.dot3(BBt.T, PPt_next, BBt)
         RR_BPB_inv = np.linalg.inv((RR + BB_PP_BB))
-        AA_PP_BB = sd.dot3(AAt.T,PPt_next,BBt)
+        AA_PP_BB = sd.dot3(AAt.T, PPt_next, BBt)
         BB_PP_AA = sd.dot3(BBt.T, PPt_next, AAt)
 
-        PP[:, :, tt:tt + 1] = np.reshape(QQ + AA_PP_AA - sd.dot3(AA_PP_BB, RR_BPB_inv, BB_PP_AA), (nx,nx,1))
+        PP[:, :, tt:tt + 1] = np.reshape(QQ + AA_PP_AA - sd.dot3(AA_PP_BB, RR_BPB_inv, BB_PP_AA), (nx, nx, 1))
 
         # Gain Update
-        KK[:, :, tt:tt + 1] = np.reshape(-np.matmul(RR_BPB_inv, BB_PP_AA), (nu,nx,1))
+        KK[:, :, tt:tt + 1] = np.reshape(-np.matmul(RR_BPB_inv, BB_PP_AA), (nu, nx, 1))
 
     xx_track[:, 0:1] = xx_init  # initial state
     uu_track[:, 0:1] = uu_init  # initial input
@@ -313,14 +314,17 @@ def Trajectory_Tracking(xx_opt, uu_opt, xx_init, uu_init, TT, noise, params):   
     # Tracking Control
 
     for tt in range(0, TT):
-        uu_track[:, tt:tt + 1] = uu_opt[:, tt:tt + 1] + np.matmul(np.reshape(KK[:, :, tt:tt + 1],(nu,nx)),
+        uu_track[:, tt:tt + 1] = uu_opt[:, tt:tt + 1] + np.matmul(np.reshape(KK[:, :, tt:tt + 1], (nu, nx)),
                                                                   (xx_track[:, tt:tt + 1] - xx_opt[:, tt:tt + 1]))
         if not noise:
             xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)[
                 'xx_next']
         else:
             xx_track[:, tt + 1:tt + 2] = sd.BB_Dynamics(xx_track[:, tt:tt + 1], uu_track[:, tt:tt + 1], pp, params)[
-            'xx_next'] + np.array([[np.random.normal(scale=0.0005, size=None),np.random.normal(scale=1E-5, size=None),np.random.normal(scale=1E-5, size=None),np.random.normal(scale=1E-6, size=None)]]).T
+                                             'xx_next'] + np.array([[np.random.normal(scale=0.0005, size=None),
+                                                                     np.random.normal(scale=1E-5, size=None),
+                                                                     np.random.normal(scale=1E-5, size=None),
+                                                                     np.random.normal(scale=1E-6, size=None)]]).T
 
     # OUTPUTS:
     #   - xx_track : state tracking from the optimal control
