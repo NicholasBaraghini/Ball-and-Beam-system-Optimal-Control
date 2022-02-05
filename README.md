@@ -33,6 +33,11 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 
 ![result example in Task 3]()
 
+### Animations
+Task 1 (single step)
+
+
+
 ### Team
 
 - [Nicholas Baraghini](https://github.com/NicholasBaraghini) 
