@@ -82,7 +82,7 @@ def animate(x_limit, y_limit, history_len, ball_radius, beam_length, t, theta, x
                          frames=len(theta),
                          fargs=(theta, xp, ball_radius, beam_length, time_text, c, trace, line, history_x,
                                 history_y, time_template, t),
-                         interval=t * 1000,
+                         interval = t * 1000,
                          blit=False,
                          repeat=True)
     return anim
