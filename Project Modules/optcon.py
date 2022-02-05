@@ -191,7 +191,7 @@ def Armijo(kk, xx, uu, xx_init, init_inp, xx_ref, uu_ref, TT, cost, descent, cc,
 
 
 # Function implemented to update the Trajectory state and input
-def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, whilòTT, cost, gamma, Sigma, KK, pp, params):
+def Trajectory_Update(kk, xx, uu, xx_ref, uu_ref, xx_init, uu_init, TT, cost, gamma, Sigma, KK, pp, params):
     # INPUTS:
     #   - kk       : actual iteration
     #   - xx       : system state tensor
