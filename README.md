@@ -31,6 +31,14 @@ Linearizing the system dynamics about the (optimal) trajectory (x, u) computed i
 
 See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_Grp21_Ball_and_Beam_Project.ipynb).Or download and run it!
 
+#### results without noise
+![state_track](https://user-images.githubusercontent.com/76887265/152638125-d0a590ff-94eb-4715-a37e-c885f61dc2ea.jpg)
+
+
+#### result with noise (white noise)
+![state_track_noise](https://user-images.githubusercontent.com/76887265/152638133-c3abd515-02d8-4c00-817b-4bd6f9d56039.jpg)
+
+
 ![result example in Task 3]()
 
 ### Animations
