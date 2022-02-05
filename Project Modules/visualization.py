@@ -7,9 +7,11 @@ import numpy as np
 from collections import deque
 
 import matplotlib
-matplotlib.rcParams['animation.embed_limit'] = 5**128
+
+matplotlib.rcParams['animation.embed_limit'] = 5 ** 128
 
 rc('animation', html='jshtml')
+
 
 # FUNCTIONS DEFINITION
 
@@ -46,6 +48,7 @@ def update_frame(i, theta, xp, ball_radius, beam_length, time_text, ball, trace,
 
     return None
 
+
 # animate: It initializes and runs the animation. The arguments are:
 #   x_limit:      limit of the plot on the x-axis (symmetric)
 #   y_limit:      limit of the plot on the y-axis (symmetric)
@@ -79,10 +82,10 @@ def animate(x_limit, y_limit, history_len, ball_radius, beam_length, t, theta, x
 
     anim = FuncAnimation(figure,
                          func=update_frame,
-                         frames=round(len(theta)*(1/2)),
+                         frames=len(theta),
                          fargs=(theta, xp, ball_radius, beam_length, time_text, c, trace, line, history_x,
                                 history_y, time_template, t),
-                         interval = t * 1000,
+                         interval=t,
                          blit=False,
                          repeat=True)
     return anim
