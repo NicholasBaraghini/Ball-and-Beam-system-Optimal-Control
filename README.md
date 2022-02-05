@@ -26,10 +26,10 @@ Define the reference (quasi) trajectory which the ball needs to follow exploitin
 
 See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_qs_traj_Grp21_Ball_and_Beam_Project.ipynb) for the DDP algorithm apllied on the quasi-static reference trajectory. Or download and run it!
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the DDP algorithm apllied on the refined reference trajectory. Or download and run it!
-
 #### Quasi Static optimal trajectory
 ![state_reference_opt_qs_traj](https://user-images.githubusercontent.com/76887265/152655930-786311ef-dfd4-457c-808e-4bb6c982d023.jpg)
+
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the DDP algorithm apllied on the refined reference trajectory. Or download and run it!
 
 #### Refined optimal trajectory
 ![state_reference_opt_traj](https://user-images.githubusercontent.com/76887265/152655936-cdc49d01-8222-4975-abca-f4446bc6a78a.jpg)
@@ -42,15 +42,15 @@ Linearizing the system dynamics about the (optimal) trajectory (x, u) computed i
 
 See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_init_disturbed_Grp21_Ball_and_Beam_Project.ipynb) for the optimal trajectory tracking.Or download and run it!
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_noise_Grp21_Ball_and_Beam_Project.ipynb) for the optimal trajectory tracking with affected by white noise.Or download and run it!
-
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the tracking of the refined optimal trajectory.Or download and run it!
-
 #### Results without noise
 ![state_track](https://user-images.githubusercontent.com/76887265/152655804-93e86a13-061b-434b-948c-7aea5ddd021e.jpg)
 
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_noise_Grp21_Ball_and_Beam_Project.ipynb) for the optimal trajectory tracking with affected by white noise.Or download and run it!
+
 #### Results with noise (white noise)
 ![state_track_noise](https://user-images.githubusercontent.com/76887265/152655809-91a73b2a-ffa4-41a9-8be7-07f998e4568c.jpg)
+
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the tracking of the refined optimal trajectory.Or download and run it!
 
 
 
