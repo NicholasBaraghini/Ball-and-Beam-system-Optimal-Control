@@ -12,7 +12,7 @@ You can read and download our report [here](https://github.com/NicholasBaraghini
 ### Task 1 - Trajectory Exploration
 Choose two equilibria and define a step between these two configurations. Compute the optimal transition for the ball to move from one equilibrium to another exploiting the DDP algorithm.
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_1_OPTCON_Grp21_Ball_and_Beam_Project.ipynb) for a single step reference trajectory.Or download and run it!
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_1_OPTCON_singlestep_Grp21_Ball_and_Beam_Project.ipynb) for a single step reference trajectory.Or download and run it!
 
 ![result example in Task 1 (single-step)](https://user-images.githubusercontent.com/76887265/152637309-2804d4fb-8cf2-46f0-9086-03e04e94db1c.jpg)
 
