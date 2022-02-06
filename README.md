@@ -19,27 +19,41 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 
 ![result example in Task 1 (multi-step)](https://user-images.githubusercontent.com/76887265/152637326-668c6586-be69-4ea3-b21f-b54e193df37e.jpg)
 
+
+
 ### Task 2 - Trajectory Optimization
 Define the reference (quasi) trajectory which the ball needs to follow exploitingthe DDP algorithm to compute the optimal trajectory
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_Grp21_Ball_and_Beam_Project.ipynb). Or download and run it!
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_qs_traj_Grp21_Ball_and_Beam_Project.ipynb) for the DDP algorithm apllied on the quasi-static reference trajectory. Or download and run it!
 
-![result example in Task 2]()
+#### Quasi Static optimal trajectory
+![state_reference_opt_qs_traj](https://user-images.githubusercontent.com/76887265/152655930-786311ef-dfd4-457c-808e-4bb6c982d023.jpg)
+
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_2_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the DDP algorithm apllied on the refined reference trajectory. Or download and run it!
+
+#### Refined optimal trajectory
+![state_reference_opt_traj](https://user-images.githubusercontent.com/76887265/152655936-cdc49d01-8222-4975-abca-f4446bc6a78a.jpg)
+
+
+
 
 ### Task 3 - Trajectory Tracking
 Linearizing the system dynamics about the (optimal) trajectory (x, u) computed in Task 2, exploit the LQR algorithm to define the optimal feedback controller to track this reference trajectory.
 
-See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_Grp21_Ball_and_Beam_Project.ipynb).Or download and run it!
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_init_disturbed_Grp21_Ball_and_Beam_Project.ipynb) for the optimal trajectory tracking.Or download and run it!
 
-#### results without noise
-![state_track](https://user-images.githubusercontent.com/76887265/152638125-d0a590ff-94eb-4715-a37e-c885f61dc2ea.jpg)
+#### Results without noise
+![state_track](https://user-images.githubusercontent.com/76887265/152655804-93e86a13-061b-434b-948c-7aea5ddd021e.jpg)
+
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_noise_Grp21_Ball_and_Beam_Project.ipynb) for the optimal trajectory tracking with affected by white noise.Or download and run it!
+
+#### Results with noise (white noise)
+![state_track_noise](https://user-images.githubusercontent.com/76887265/152655809-91a73b2a-ffa4-41a9-8be7-07f998e4568c.jpg)
+
+See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/blob/main/Project%20Tasks/TASK_3_OPTCON_traj_Grp21_Ball_and_Beam_Project.ipynb) for the tracking of the refined optimal trajectory.Or download and run it!
 
 
-#### result with noise (white noise)
-![state_track_noise](https://user-images.githubusercontent.com/76887265/152638133-c3abd515-02d8-4c00-817b-4bd6f9d56039.jpg)
 
-
-![result example in Task 3]()
 
 ### Animations
 #### Task 1 (single step)
@@ -48,7 +62,17 @@ See the results in [this jupyter notebook](https://github.com/NicholasBaraghini/
 #### Task 1 (multi-step)
 ![Task_1_2](https://user-images.githubusercontent.com/76887265/152638321-556cf99f-5b52-4d22-a843-bbaaf5055d90.gif)
 
+#### Task 2 (quasi-stationary trajectory)
+![Task_2_qs_traj](https://user-images.githubusercontent.com/76887265/152655379-70e10030-dd35-43ef-8c77-49af63dd1256.gif)
 
+#### Task 2 (refined trajectory)
+![Task_2_traj](https://user-images.githubusercontent.com/76887265/152655393-a9563583-abd1-4e2a-9e59-7507462c7f25.gif)
+
+#### Task 3 (without noise, initial consitions disturbed)
+![Task_3_init_dist](https://user-images.githubusercontent.com/76887265/152655423-54a6b81c-91fc-405d-8b85-77495d0af5db.gif)
+
+#### Task 3 (with noise)
+![Task_3_noise](https://user-images.githubusercontent.com/76887265/152655442-06022776-1525-4ed4-aeb7-68bab92952d0.gif)
 
 
 ### Team
