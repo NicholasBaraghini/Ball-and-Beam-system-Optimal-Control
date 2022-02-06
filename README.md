@@ -6,7 +6,8 @@
 You can read the task description [here](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/files/7913643/OPTCON2021.-Group.21.Ball.and.Beam.project.proposal.pdf)
 
 ### Report
-You can read and download our report [here]()
+You can read and download our report [here](https://github.com/NicholasBaraghini/Ball-and-Beam-system-Optimal-Control/files/8009846/OPTCON_report_.1.pdf)
+
 
 ### Task 1 - Trajectory Exploration
 Choose two equilibria and define a step between these two configurations. Compute the optimal transition for the ball to move from one equilibrium to another exploiting the DDP algorithm.
